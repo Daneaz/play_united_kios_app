@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
 
-import BasicLayout from '../components/Layouts/BasicLayout';
+import TimerLayout from '../components/Layouts/TimerLayout';
 import {ImageBackground, StyleSheet, Text, View} from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import {fetchAPI} from '../services/Utility';
@@ -118,7 +118,7 @@ export default function QRCodeScreen({route}) {
   }
 
   return (
-    <BasicLayout
+    <TimerLayout
       source={
         lang === CN
           ? require('../assets/images/retrieve-bg-cn.png')
@@ -148,7 +148,7 @@ export default function QRCodeScreen({route}) {
         </Text>
       </View>
       <MessageDialog type={type} msg={msg} close={() => setMsg(null)} />
-    </BasicLayout>
+    </TimerLayout>
   );
 }
 

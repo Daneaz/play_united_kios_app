@@ -1,5 +1,5 @@
 import React, {useContext} from 'react';
-import {ImageBackground, StyleSheet, Text, Image} from 'react-native';
+import {Image, ImageBackground, StyleSheet, Text} from 'react-native';
 import ImageButton from './Button/ImageButton';
 import {useNavigation} from '@react-navigation/native';
 import {RESET} from '../constants/Constant';
@@ -8,7 +8,6 @@ import calculate from '../services/DimensionAdapter';
 import TextEnricher from './Label/TextEnricher';
 import TextEnrichImageButton from './Label/TextEnrichImageButton';
 import {Layout, Modal} from '@ui-kitten/components';
-import PurchaseBanner from './PurchaseBanner';
 
 export default function MessageDialog(props) {
   const navigation = useNavigation();
@@ -55,7 +54,7 @@ export default function MessageDialog(props) {
           <TextEnrichImageButton
             source={require('../assets/images/msg-dialog-btn-blue.png')}
             imageBtnStyle={common.btn}
-            text={'OK'}
+            text={props.btnText ? props.btnText : 'Ok'}
             imageBtnTextStyle={common.infoText}
             onPress={() => onConfirm()}
           />
@@ -91,7 +90,7 @@ export default function MessageDialog(props) {
           <TextEnrichImageButton
             source={require('../assets/images/msg-dialog-btn-yellow.png')}
             imageBtnStyle={common.btn}
-            text={'OK'}
+            text={props.btnText ? props.btnText : 'Ok'}
             imageBtnTextStyle={common.warningText}
             onPress={() => onConfirm()}
           />
@@ -127,7 +126,7 @@ export default function MessageDialog(props) {
           <TextEnrichImageButton
             source={require('../assets/images/msg-dialog-btn-red.png')}
             imageBtnStyle={common.btn}
-            text={'OK'}
+            text={props.btnText ? props.btnText : 'Ok'}
             imageBtnTextStyle={common.errorText}
             onPress={() => onConfirm()}
           />
@@ -163,7 +162,7 @@ export default function MessageDialog(props) {
           <TextEnrichImageButton
             source={require('../assets/images/msg-dialog-btn-green.png')}
             imageBtnStyle={success.btn}
-            text={'OK'}
+            text={props.btnText ? props.btnText : 'Ok'}
             imageBtnTextStyle={common.infoText}
             onPress={() => {
               props.close();

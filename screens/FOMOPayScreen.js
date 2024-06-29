@@ -4,7 +4,7 @@ import {Linking, StyleSheet, View} from 'react-native';
 import {GlobalContext} from '../states/GlobalState';
 import {CN, RESET} from '../constants/Constant';
 import calculate from '../services/DimensionAdapter';
-import BasicLayout from '../components/Layouts/BasicLayout';
+import TimerLayout from '../components/Layouts/TimerLayout';
 import Colors from '../constants/Colors';
 
 export default function FOMOPayScreen({route, navigation}) {
@@ -44,7 +44,7 @@ export default function FOMOPayScreen({route, navigation}) {
   }
 
   return (
-    <BasicLayout
+    <TimerLayout
       source={
         lang === CN
           ? require('../assets/images/purchase-bg-cn.png')
@@ -61,7 +61,7 @@ export default function FOMOPayScreen({route, navigation}) {
           />
         </View>
       </View>
-    </BasicLayout>
+    </TimerLayout>
   );
 }
 

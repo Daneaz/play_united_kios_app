@@ -7,21 +7,19 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {Button, Card, Layout, Modal} from '@ui-kitten/components';
 import {fetchAPI} from '../services/Utility';
 import {GlobalContext} from '../states/GlobalState';
 import {CN} from '../constants/Constant';
 import calculate from '../services/DimensionAdapter';
 import Colors from '../constants/Colors';
-import ButtonSpinner from './Button/ButtonSpinner';
 import MessageDialog from './MessageDialog';
 
 export default function PurchaseBanner(props) {
-  const [showModal, setShowModal] = useState(false);
   const [tokenLang, setTokenLang] = useState(false);
   const [msg, setMsg] = useState(null);
   const [type, setType] = useState(null);
   const [header, setHeader] = useState(null);
+  const [btnText, setBtnText] = useState(null);
 
   const [state] = useContext(GlobalContext);
 
@@ -49,6 +47,7 @@ export default function PurchaseBanner(props) {
         onPress={() => {
           setType('INFO');
           setHeader('Purchasing');
+          setBtnText('Confirm?');
           setMsg(
             `Token: ${promotion.tokens} \n Amount: $${promotion.sellingPrice}`,
           );
@@ -67,7 +66,7 @@ export default function PurchaseBanner(props) {
               />
               <Text style={styles.promotionTitleText}>{promotion.name}</Text>
             </ImageBackground>
-            <View space={10} my={5} mx={10}>
+            <View style={styles.row}>
               <Image
                 source={require('../assets/images/purchase-icon.png')}
                 style={styles.icon}
@@ -89,6 +88,7 @@ export default function PurchaseBanner(props) {
         type={type}
         msg={msg}
         header={header}
+        btnText={btnText}
         close={() => setMsg(null)}
         onConfirm={() => handleCheckout()}
       />
@@ -100,6 +100,11 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  row: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    margin: calculate(10),
   },
   banner: {
     width: calculate(326),

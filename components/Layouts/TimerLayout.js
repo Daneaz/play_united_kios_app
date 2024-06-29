@@ -7,7 +7,7 @@ import {GlobalContext} from '../../states/GlobalState';
 import {RESET} from '../../constants/Constant';
 import calculate from '../../services/DimensionAdapter';
 
-export default function BasicLayout(props) {
+export default function TimerLayout(props) {
   const navigation = useNavigation();
   const [state, dispatch] = useContext(GlobalContext);
 

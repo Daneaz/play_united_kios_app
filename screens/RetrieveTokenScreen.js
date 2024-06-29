@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 
-import BasicLayout from '../components/Layouts/BasicLayout';
+import TimerLayout from '../components/Layouts/TimerLayout';
 import ImageButton from '../components/Button/ImageButton';
 import {StyleSheet, View} from 'react-native';
 import {GlobalContext} from '../states/GlobalState';
@@ -25,7 +25,7 @@ export default function RetrieveTokenScreen({navigation, route}) {
   }, [state.language]);
 
   return (
-    <BasicLayout
+    <TimerLayout
       source={
         lang === CN
           ? require('../assets/images/retrieve-bg-cn.png')
@@ -113,7 +113,7 @@ export default function RetrieveTokenScreen({navigation, route}) {
           serialCom={route.params.serialCom}
         />
       )}
-    </BasicLayout>
+    </TimerLayout>
   );
 }
 
