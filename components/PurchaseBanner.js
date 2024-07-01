@@ -35,7 +35,10 @@ export default function PurchaseBanner(props) {
 
   async function handleCheckout() {
     let order = await fetchAPI('POST', 'orderMgt/newOrder', promotion);
-    props.navigation.navigate('FOMOPay', {url: order});
+    props.navigation.navigate('FOMOPay', {
+      url: order,
+      tokens: promotion.tokens,
+    });
   }
 
   return (

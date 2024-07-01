@@ -169,10 +169,14 @@ async function handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang) {
 
   switch (status) {
     case '00':
-      await pushStatusToFail(transId, setMsg, setType);
+      if (transId) {
+        await pushStatusToFail(transId, setMsg, setType);
+      }
       return;
     case '01':
-      await pushStatusToSuccess(transId, setMsg, setType);
+      if (transId) {
+        await pushStatusToSuccess(transId, setMsg, setType);
+      }
       return;
     case '02':
       setMsg(
@@ -187,7 +191,9 @@ async function handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang) {
           ? `库存不足，请联系工作人员补币。 已出${dispensedToken}个币`
           : `Not enough token, please contact our staff to add more tokens. Dispensed ${dispensedToken} tokens`,
       );
-      await proceedWithInterrupt(transId, dispensedToken, setMsg, setType);
+      if (transId) {
+        await proceedWithInterrupt(transId, dispensedToken, setMsg, setType);
+      }
       return;
   }
 }
@@ -195,7 +201,9 @@ async function handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang) {
 async function handleAAResponse(hex, transId, setMsg, setType, lang) {
   if (hex === '55AA04C00000C4') {
     setMsg(lang === CN ? '出币完毕' : 'All tokens has been dispensed');
-    await pushStatusToSuccess(transId, setMsg, setType);
+    if (transId) {
+      await pushStatusToSuccess(transId, setMsg, setType);
+    }
   } else {
     let dispensedToken = convertToDecimal(hex, 8, 12);
     setMsg(
@@ -203,7 +211,9 @@ async function handleAAResponse(hex, transId, setMsg, setType, lang) {
         ? `库存不足，请联系工作人员补币。 已出${dispensedToken}个币`
         : `Not enough token, please contact our staff to add more tokens. Dispensed ${dispensedToken} tokens`,
     );
-    await proceedWithInterrupt(transId, dispensedToken, setMsg, setType);
+    if (transId) {
+      await proceedWithInterrupt(transId, dispensedToken, setMsg, setType);
+    }
   }
 }
 

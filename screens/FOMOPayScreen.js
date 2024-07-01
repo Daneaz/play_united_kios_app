@@ -6,6 +6,7 @@ import {CN, RESET} from '../constants/Constant';
 import calculate from '../services/DimensionAdapter';
 import TimerLayout from '../components/Layouts/TimerLayout';
 import Colors from '../constants/Colors';
+import {dispenseToken} from '../services/SerialService';
 
 export default function FOMOPayScreen({route, navigation}) {
   const [msg, setMsg] = useState(null);
@@ -37,9 +38,28 @@ export default function FOMOPayScreen({route, navigation}) {
     if (path.includes('PaymentSuccess')) {
       setType('SUCCESS');
       setMsg('Payment success!!!');
+      setTimeout(async () => {
+        await handleDispenseToken();
+      }, 500);
     } else if (path.includes('PaymentCancel')) {
       setType('ERROR');
       setMsg('Payment fail!!!');
+    }
+  }
+
+  async function handleDispenseToken() {
+    try {
+      await dispenseToken(
+        route.params.serialCom,
+        '',
+        route.params.tokens,
+        setMsg,
+        setType,
+        lang,
+      );
+    } catch (error) {
+      setType('ERROR');
+      setMsg(JSON.stringify(error));
     }
   }
 
