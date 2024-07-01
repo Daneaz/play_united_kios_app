@@ -1,5 +1,5 @@
 import React, {useContext} from 'react';
-import {Image, ImageBackground, StyleSheet, Text} from 'react-native';
+import {Image, ImageBackground, StyleSheet, Text, View} from 'react-native';
 import ImageButton from './Button/ImageButton';
 import {useNavigation} from '@react-navigation/native';
 import {RESET} from '../constants/Constant';
@@ -7,7 +7,7 @@ import {GlobalContext} from '../states/GlobalState';
 import calculate from '../services/DimensionAdapter';
 import TextEnricher from './Label/TextEnricher';
 import TextEnrichImageButton from './Label/TextEnrichImageButton';
-import {Layout, Modal} from '@ui-kitten/components';
+import {Modal} from '@ui-kitten/components';
 
 export default function MessageDialog(props) {
   const navigation = useNavigation();
@@ -44,7 +44,7 @@ export default function MessageDialog(props) {
             {props.header ? props.header : 'Info'}
           </TextEnricher>
         </ImageBackground>
-        <Layout space={1} alignItems={'center'}>
+        <View space={1} alignItems={'center'}>
           <Image
             source={require('../assets/images/msg-dialog-info.png')}
             style={common.icon}
@@ -58,7 +58,7 @@ export default function MessageDialog(props) {
             imageBtnTextStyle={common.infoText}
             onPress={() => onConfirm()}
           />
-        </Layout>
+        </View>
       </ImageBackground>
     );
   }
@@ -80,7 +80,7 @@ export default function MessageDialog(props) {
             {props.header ? props.header : 'Warning'}
           </TextEnricher>
         </ImageBackground>
-        <Layout space={1} alignItems={'center'}>
+        <View space={1} alignItems={'center'}>
           <Image
             source={require('../assets/images/msg-dialog-warning.png')}
             style={common.icon}
@@ -94,7 +94,7 @@ export default function MessageDialog(props) {
             imageBtnTextStyle={common.warningText}
             onPress={() => onConfirm()}
           />
-        </Layout>
+        </View>
       </ImageBackground>
     );
   }
@@ -116,7 +116,7 @@ export default function MessageDialog(props) {
             {props.header ? props.header : 'Error'}
           </TextEnricher>
         </ImageBackground>
-        <Layout space={1} alignItems={'center'}>
+        <View alignItems={'center'}>
           <Image
             source={require('../assets/images/msg-dialog-error.png')}
             style={common.icon}
@@ -130,7 +130,7 @@ export default function MessageDialog(props) {
             imageBtnTextStyle={common.errorText}
             onPress={() => onConfirm()}
           />
-        </Layout>
+        </View>
       </ImageBackground>
     );
   }
@@ -138,7 +138,7 @@ export default function MessageDialog(props) {
   function Success() {
     return (
       <ImageBackground
-        source={require('../assets/images/msg-dialog-holder-success.png')}
+        source={require('../assets/images/msg-dialog-holder.png')}
         style={success.successHolder}>
         <ImageButton
           source={require('../assets/images/msg-dialog-close-blue.png')}
@@ -152,7 +152,7 @@ export default function MessageDialog(props) {
             {props.header ? props.header : 'Success'}
           </TextEnricher>
         </ImageBackground>
-        <Layout space={1} alignItems={'center'}>
+        <View space={1} alignItems={'center'}>
           <Image
             source={require('../assets/images/msg-dialog-success.png')}
             style={success.icon}
@@ -170,7 +170,7 @@ export default function MessageDialog(props) {
               navigation.navigate('Home');
             }}
           />
-        </Layout>
+        </View>
       </ImageBackground>
     );
   }
@@ -193,8 +193,8 @@ export default function MessageDialog(props) {
 
 const common = StyleSheet.create({
   common: {
-    width: calculate(285),
-    height: calculate(285),
+    width: calculate(315),
+    height: calculate(315),
   },
   title: {
     alignSelf: 'center',
@@ -251,14 +251,13 @@ const common = StyleSheet.create({
 
 const success = StyleSheet.create({
   successHolder: {
-    width: calculate(276),
-    height: calculate(325),
+    width: calculate(315),
+    height: calculate(315),
   },
   title: {
     alignSelf: 'center',
     width: calculate(149),
     height: calculate(49),
-    top: calculate(70),
   },
   close: {
     position: 'absolute',

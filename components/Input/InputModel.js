@@ -52,7 +52,7 @@ export default function InputModel(props) {
             showSoftInputOnFocus={false}
             value={token}
           />
-          <View space={calculate(5)}>
+          <View style={styles.row}>
             <ImageButton
               source={require('../../assets/images/number1.png')}
               imageBtnStyle={styles.numbers}
@@ -69,7 +69,7 @@ export default function InputModel(props) {
               onPress={() => handleInputChange('3')}
             />
           </View>
-          <View space={calculate(5)}>
+          <View style={styles.row}>
             <ImageButton
               source={require('../../assets/images/number4.png')}
               imageBtnStyle={styles.numbers}
@@ -86,7 +86,7 @@ export default function InputModel(props) {
               onPress={() => handleInputChange('6')}
             />
           </View>
-          <View space={calculate(5)}>
+          <View style={styles.row}>
             <ImageButton
               source={require('../../assets/images/number7.png')}
               imageBtnStyle={styles.numbers}
@@ -103,7 +103,7 @@ export default function InputModel(props) {
               onPress={() => handleInputChange('9')}
             />
           </View>
-          <View space={calculate(5)}>
+          <View style={styles.row}>
             <ImageButton
               source={require('../../assets/images/clear.png')}
               imageBtnStyle={styles.numbers}
@@ -159,6 +159,11 @@ const styles = StyleSheet.create({
   common: {
     width: calculate(282),
     height: calculate(375),
+  },
+  row: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: calculate(5),
   },
   close: {
     position: 'absolute',

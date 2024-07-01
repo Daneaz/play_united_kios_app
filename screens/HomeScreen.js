@@ -41,7 +41,7 @@ export default function HomeScreen({navigation}) {
 
   useEffect(() => {
     if (isFocused && !serialCom.current) {
-      // init();
+      init();
     }
     setBackDoorCounter(0);
   }, [isFocused]);
