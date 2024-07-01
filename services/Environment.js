@@ -4,7 +4,7 @@ export const S3UatUrl =
   'https://playuniteduat.s3.ap-southeast-1.amazonaws.com/';
 export const S3ProdUrl =
   'https://playunitedprod.s3.ap-southeast-1.amazonaws.com/';
-const uatUrl = 'http://18.141.245.191:5000';
+const uatUrl = 'https://uat.mobile.playunitedsg.com';
 const prodUrl = 'https://mobile.playunitedsg.com';
 const ENVURL = {
   dev: {

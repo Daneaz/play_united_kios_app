@@ -51,10 +51,14 @@ export default function FOMOPayScreen({route, navigation}) {
           : require('../assets/images/purchase-bg-en.png')
       }
       text={state.time}>
-      <View style={styles.whiteBg}>
-        <View style={{height: '52%'}}>
+      <View
+        style={{
+          marginHorizontal: calculate(75),
+          marginVertical: calculate(90),
+        }}>
+        <View style={{height: '51%'}}>
           <WebView
-            style={{backgroundColor: Colors.transparent}}
+            style={{backgroundColor: Colors.white}}
             source={{
               uri: route.params.url,
             }}
@@ -70,10 +74,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: '100%',
     height: calculate(50),
-  },
-  whiteBg: {
-    width: '100%',
-    height: '100%',
   },
   timerPosition: {
     marginTop: calculate(10),
