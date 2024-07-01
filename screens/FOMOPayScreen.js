@@ -19,7 +19,7 @@ export default function FOMOPayScreen({route, navigation}) {
       dispatch({type: RESET});
       navigation.navigate('Home');
     }
-  }, [dispatch, navigation, state.time]);
+  }, [state.time]);
 
   useEffect(() => {
     setLang(state.language);

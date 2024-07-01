@@ -22,7 +22,7 @@ export default function LoginScreen({navigation}) {
       }
     }
     getUser();
-  }, [navigation]);
+  }, []);
 
   useEffect(() => {
     checkForUpdate();
