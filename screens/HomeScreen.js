@@ -77,7 +77,7 @@ export default function HomeScreen({navigation}) {
       if (user.mobile === 0) {
         port = '/dev/ttyS2';
         serialCom.current = await SerialPortAPI.open(port, {
-          baudRate: 38400,
+          baudRate: 115200,
         });
       } else if (user.mobile < 10) {
         port = '/dev/ttyS3';
@@ -85,7 +85,7 @@ export default function HomeScreen({navigation}) {
           baudRate: 115200,
         });
       } else {
-        port = '/dev/ttyS3';
+        port = '/dev/ttyS2';
         serialCom.current = await SerialPortAPI.open(port, {
           baudRate: 38400,
         });
