@@ -76,12 +76,20 @@ export default function HomeScreen({navigation}) {
       let user = await getData(Constant.USER);
       if (user.mobile === 0) {
         port = '/dev/ttyS2';
+        serialCom.current = await SerialPortAPI.open(port, {
+          baudRate: 38400,
+        });
+      } else if (user.mobile < 10) {
+        port = '/dev/ttyS3';
+        serialCom.current = await SerialPortAPI.open(port, {
+          baudRate: 115200,
+        });
       } else {
         port = '/dev/ttyS3';
+        serialCom.current = await SerialPortAPI.open(port, {
+          baudRate: 38400,
+        });
       }
-      serialCom.current = await SerialPortAPI.open(port, {
-        baudRate: 115200,
-      });
     } catch (error) {
       setType('ERROR');
       setMsg(error.toString());
