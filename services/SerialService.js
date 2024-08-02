@@ -1,7 +1,7 @@
 import {fetchAPI, getData} from './Utility';
 import * as Constant from '../constants/Constant';
 import {CN} from '../constants/Constant';
-import {TimeNowString} from '../services/DateTimeUtils';
+import {TimeStampTo10Digits} from './DateTimeUtils';
 
 export async function dispenseToken(
   serialCom,
@@ -80,11 +80,14 @@ function constructLeYaoYaoCmd(cmdType, dataSize, token) {
   let index = '01'; // indicating the identity is APP
   let cmd = cmdType.substring(0, 2);
   let subcmd = cmdType.substring(2, 4);
-  let uniqueCode = stringToHex(TimeNowString());
+  // use the 10 digit timestamp add 00 as prefix to form a 12 char string
+  let uniqueCode = `00${TimeStampTo10Digits()}`;
+  console.log(uniqueCode);
   let amount = '0000'; // default to 0, not using it
 
   let checkSum = [];
-  let tokenInHex = digitToHex(token, 4);
+  let tokenInHex = decimalToHexLowHigh(token);
+  console.log(tokenInHex);
 
   checkSum.push(dataSize);
   checkSum.push(index);
@@ -262,24 +265,21 @@ function constructFEHeaderMsg(cmdType, data) {
   return cmd;
 }
 
-function digitToHex(digit, size) {
-  // Convert digit to hexadecimal string
-  let hex = digit.toString(16).toUpperCase();
-
-  // Pad with leading zeros to ensure two bytes (four characters)
-  while (hex.length < size) {
-    hex = '0' + hex;
+function decimalToHexLowHigh(decimal) {
+  // Ensure the decimal number is in range for 2 bytes (0-65535)
+  if (decimal < 0 || decimal > 65535) {
+    throw new Error('Decimal number out of range (0-65535)');
   }
 
-  return hex;
-}
+  // Convert decimal to a 4-character hexadecimal string
+  let hex = decimal.toString(16).toUpperCase().padStart(4, '0');
 
-function stringToHex(str) {
-  let hex = '';
-  for (let i = 0; i < str.length; i++) {
-    hex += str.charCodeAt(i).toString(16).toUpperCase();
-  }
-  return hex;
+  // Extract lower and higher bytes
+  let lowerByte = hex.substring(0, 2); // Lower byte (first 2 characters)
+  let higherByte = hex.substring(2); // Higher byte (last 2 characters)
+
+  // Concatenate lower byte on the left, then higher byte on the right
+  return higherByte + lowerByte;
 }
 
 async function proceedWithInterrupt(transId, dispensedToken, setType, setMsg) {

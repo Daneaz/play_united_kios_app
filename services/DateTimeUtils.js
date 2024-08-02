@@ -5,8 +5,8 @@ const TodayDateString = () => {
   return dayjs().format('YYYY-MM-DD');
 };
 
-const TimeNowString = () => {
-  return dayjs().format('HHmmss');
+const TimeStampTo10Digits = () => {
+  return Math.floor(dayjs().valueOf() / 1000);
 };
 
 const TodayDate = () => {
@@ -23,7 +23,7 @@ const TimestampNow = () => {
 
 module.exports = {
   TodayDateString,
-  TimeNowString,
+  TimeStampTo10Digits: TimeStampTo10Digits,
   TodayDate,
   TimeNow,
   TimestampNow,
