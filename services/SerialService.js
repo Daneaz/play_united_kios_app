@@ -217,8 +217,8 @@ async function handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang) {
       } else {
         setMsg(
           lang === CN
-            ? `正在出币。。。 已出${dispensedToken}个币`
-            : `Dispensing... Dispensed ${dispensedToken} tokens`,
+            ? `正在出币。。。 剩余${unfinishedDispenseToken}个币`
+            : `Dispensing... Remaining ${unfinishedDispenseToken} tokens`,
         );
       }
       break;
