@@ -167,37 +167,39 @@ async function handlerReceived(user, buff, transId, setMsg, setType, lang) {
 }
 
 async function handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang) {
-  let status = hex.substring(25, 27);
-  let dispensedToken = hex.substring(27, 29);
+  if (hex.length === 44) {
+    let status = hex.substring(26, 28);
+    let dispensedToken = hexReorderAndConvert(hex.substring(28, 32));
 
-  switch (status) {
-    case '00':
-      if (transId) {
-        await pushStatusToFail(transId, setMsg, setType);
-      }
-      return;
-    case '01':
-      if (transId) {
-        await pushStatusToSuccess(transId, setMsg, setType);
-      }
-      return;
-    case '02':
-      setMsg(
-        lang === CN
-          ? `正在出币。。。 已出${dispensedToken}个币`
-          : `Dispensing... Dispensed ${dispensedToken} tokens`,
-      );
-      return;
-    case '03':
-      setMsg(
-        lang === CN
-          ? `库存不足，请联系工作人员补币。 已出${dispensedToken}个币`
-          : `Not enough token, please contact our staff to add more tokens. Dispensed ${dispensedToken} tokens`,
-      );
-      if (transId) {
-        await proceedWithInterrupt(transId, dispensedToken, setMsg, setType);
-      }
-      return;
+    switch (status) {
+      case '00':
+        if (transId) {
+          await pushStatusToFail(transId, setMsg, setType);
+        }
+        return;
+      case '01':
+        if (transId) {
+          await pushStatusToSuccess(transId, setMsg, setType);
+        }
+        return;
+      case '02':
+        setMsg(
+          lang === CN
+            ? `正在出币。。。 已出${dispensedToken}个币`
+            : `Dispensing... Dispensed ${dispensedToken} tokens`,
+        );
+        return;
+      case '03':
+        setMsg(
+          lang === CN
+            ? `库存不足，请联系工作人员补币。 已出${dispensedToken}个币`
+            : `Not enough token, please contact our staff to add more tokens. Dispensed ${dispensedToken} tokens`,
+        );
+        if (transId) {
+          await proceedWithInterrupt(transId, dispensedToken, setMsg, setType);
+        }
+        return;
+    }
   }
 }
 
@@ -280,6 +282,21 @@ function decimalToHexLowHigh(decimal) {
 
   // Concatenate lower byte on the left, then higher byte on the right
   return higherByte + lowerByte;
+}
+
+function hexReorderAndConvert(hex) {
+  // Ensure the hex string is 4 characters long and uppercase
+  hex = hex.toUpperCase().padStart(4, '0');
+
+  // Extract lower and higher bytes
+  let lowerByte = hex.substring(0, 2); // Lower byte (first 2 characters)
+  let higherByte = hex.substring(2); // Higher byte (last 2 characters)
+
+  // Convert it back
+  let reorderedHex = higherByte + lowerByte;
+
+  // Convert reordered hex to decimal
+  return parseInt(reorderedHex, 16);
 }
 
 async function proceedWithInterrupt(transId, dispensedToken, setType, setMsg) {
