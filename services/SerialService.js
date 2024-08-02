@@ -82,12 +82,10 @@ function constructLeYaoYaoCmd(cmdType, dataSize, token) {
   let subcmd = cmdType.substring(2, 4);
   // use the 10 digit timestamp add 00 as prefix to form a 12 char string
   let uniqueCode = `00${TimeStampTo10Digits()}`;
-  console.log(uniqueCode);
-  let amount = '0000'; // default to 0, not using it
+  let amount = '0001'; // default to 1, not using it, but also cannot be 0
 
   let checkSum = [];
   let tokenInHex = decimalToHexLowHigh(token);
-  console.log(tokenInHex);
 
   checkSum.push(dataSize);
   checkSum.push(index);
@@ -167,39 +165,77 @@ async function handlerReceived(user, buff, transId, setMsg, setType, lang) {
 }
 
 async function handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang) {
-  if (hex.length === 44) {
-    let status = hex.substring(26, 28);
-    let dispensedToken = hexReorderAndConvert(hex.substring(28, 32));
+  switch (hex.length) {
+    case 44:
+      // dispensing result
+      let status = hex.substring(26, 28);
+      let dispensedToken = hexReorderAndConvert(hex.substring(28, 32));
+      switch (status) {
+        case '00':
+          if (transId) {
+            await pushStatusToFail(transId, setMsg, setType);
+          }
+          return;
+        case '01':
+          if (transId) {
+            await pushStatusToSuccess(transId, setMsg, setType);
+          }
+          return;
+        case '02':
+          setMsg(
+            lang === CN
+              ? `正在出币。。。 已出${dispensedToken}个币`
+              : `Dispensing... Dispensed ${dispensedToken} tokens`,
+          );
+          return;
+        case '03':
+          setMsg(
+            lang === CN
+              ? `库存不足，请联系工作人员补币。 已出${dispensedToken}个币`
+              : `Not enough token, please contact our staff to add more tokens. Dispensed ${dispensedToken} tokens`,
+          );
 
-    switch (status) {
-      case '00':
-        if (transId) {
-          await pushStatusToFail(transId, setMsg, setType);
-        }
-        return;
-      case '01':
+          if (transId) {
+            await proceedWithInterrupt(
+              transId,
+              dispensedToken,
+              setMsg,
+              setType,
+            );
+          }
+          return;
+      }
+    case 30:
+      // progress of dispensing token, sometimes we dont have the above result
+      // we have to analyse base of this response
+      let unfinishedDispenseToken = hexReorderAndConvert(hex.substring(22, 26));
+      if (unfinishedDispenseToken === 0) {
         if (transId) {
           await pushStatusToSuccess(transId, setMsg, setType);
         }
         return;
-      case '02':
+      } else {
         setMsg(
           lang === CN
             ? `正在出币。。。 已出${dispensedToken}个币`
             : `Dispensing... Dispensed ${dispensedToken} tokens`,
         );
-        return;
-      case '03':
-        setMsg(
-          lang === CN
-            ? `库存不足，请联系工作人员补币。 已出${dispensedToken}个币`
-            : `Not enough token, please contact our staff to add more tokens. Dispensed ${dispensedToken} tokens`,
-        );
-        if (transId) {
-          await proceedWithInterrupt(transId, dispensedToken, setMsg, setType);
-        }
-        return;
-    }
+      }
+      break;
+    case 36:
+      // problem with machine, maybe out of token
+      setMsg(
+        lang === CN
+          ? '库存不足/或故障，请联系工作人员补币'
+          : 'Not enough token or encounter issue, please contact our staff',
+      );
+      break;
+    default:
+      setMsg(
+        lang === CN
+          ? '未知故障，请联系工作人员补币'
+          : 'Unknown Error, please contact our staff',
+      );
   }
 }
 
@@ -224,7 +260,6 @@ async function handleAAResponse(hex, transId, setMsg, setType, lang) {
 
 function convertToDecimal(hex, start, end) {
   let dispensedToken = parseInt(hex.substring(start, end), 16);
-  console.log(dispensedToken);
   return dispensedToken;
 }
 
