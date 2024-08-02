@@ -85,7 +85,7 @@ export default function HomeScreen({navigation}) {
           baudRate: 115200,
         });
       } else {
-        port = '/dev/ttyS2';
+        port = '/dev/ttyS1';
         serialCom.current = await SerialPortAPI.open(port, {
           baudRate: 38400,
         });
