@@ -95,7 +95,7 @@ export default function QRCodeScreen({route}) {
   async function handleDispenseToken(transId, token) {
     try {
       await dispenseToken(
-        route.params.serialCom,
+        state.serialCom,
         transId,
         token,
         setMsg,

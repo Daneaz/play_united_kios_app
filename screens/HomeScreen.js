@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import ImageButton from '../components/Button/ImageButton';
 import * as Constant from '../constants/Constant';
-import {CN, EN, START, TICK} from '../constants/Constant';
+import {CN, EN, INIT, START, TICK} from '../constants/Constant';
 import {GlobalContext} from '../states/GlobalState';
 import SerialPortAPI from 'react-native-serial-port-api';
 import MessageDialog from '../components/MessageDialog';
@@ -36,11 +36,10 @@ export default function HomeScreen({navigation}) {
 
   const timer = useRef();
   const carousel = useRef();
-  const serialCom = useRef(null);
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    if (isFocused && !serialCom.current) {
+    if (isFocused && !state.serialCom) {
       init();
     }
     setBackDoorCounter(0);
@@ -72,24 +71,23 @@ export default function HomeScreen({navigation}) {
 
   async function init() {
     try {
-      let port;
+      let port, baudRate;
       let user = await getData(Constant.USER);
       if (user.mobile === 0) {
         port = '/dev/ttyS2';
-        serialCom.current = await SerialPortAPI.open(port, {
-          baudRate: 115200,
-        });
+        baudRate = 115200;
       } else if (user.mobile < 10) {
         port = '/dev/ttyS3';
-        serialCom.current = await SerialPortAPI.open(port, {
-          baudRate: 115200,
-        });
+        baudRate = 115200;
       } else {
         port = '/dev/ttyS1';
-        serialCom.current = await SerialPortAPI.open(port, {
-          baudRate: 38400,
-        });
+        baudRate = 38400;
       }
+      let serialCom = await SerialPortAPI.open(port, {
+        baudRate: baudRate,
+      });
+
+      dispatch({type: INIT, payload: serialCom});
     } catch (error) {
       setType('ERROR');
       setMsg(error.toString());
@@ -162,7 +160,7 @@ export default function HomeScreen({navigation}) {
             }
             imageBtnStyle={styles.buttons}
             onPress={() => {
-              navigation.navigate('RetrieveToken', {serialCom: serialCom});
+              navigation.navigate('RetrieveToken');
               dispatch({type: START});
               timer.current = setInterval(() => dispatch({type: TICK}), 1000);
             }}

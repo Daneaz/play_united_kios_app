@@ -50,7 +50,7 @@ export default function FOMOPayScreen({route, navigation}) {
   async function handleDispenseToken() {
     try {
       await dispenseToken(
-        route.params.serialCom,
+        state.serialCom,
         '',
         route.params.tokens,
         setMsg,

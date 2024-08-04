@@ -1,9 +1,14 @@
 import React, {createContext, useReducer} from 'react';
-import {CN, EN, RESET, START, TICK} from '../constants/Constant';
+import {CN, EN, INIT, RESET, START, TICK} from '../constants/Constant';
 
 export const GlobalContext = createContext();
 
-const initialState = {time: 300, isRunning: false, language: EN};
+const initialState = {
+  time: 300,
+  isRunning: false,
+  language: EN,
+  serialCom: null,
+};
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -17,6 +22,8 @@ const reducer = (state, action) => {
       return {...state, language: CN};
     case EN:
       return {...state, language: EN};
+    case INIT:
+      return {...state, serialCom: action.payload};
     default:
       return state;
   }

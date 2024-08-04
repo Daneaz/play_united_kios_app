@@ -137,14 +137,14 @@ async function executeCmd(
   token,
 ) {
   try {
-    await serialCom.current.send(cmd);
+    await serialCom.send(cmd);
     setType('SUCCESS');
     setMsg(
       lang === CN
         ? `${token}个币，出币中。。。`
         : `Dispensing ${token} token...`,
     );
-    serialCom.current.onReceived(buff =>
+    serialCom.onReceived(buff =>
       handlerReceived(user, buff, transId, setMsg, setType, lang),
     );
   } catch (error) {

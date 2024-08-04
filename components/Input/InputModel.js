@@ -135,7 +135,6 @@ export default function InputModel(props) {
               } else if (parseInt(token, 10) > 0) {
                 navigation.navigate('QRCode', {
                   token: token,
-                  serialCom: props.serialCom,
                 });
                 setToken('');
                 props.close();

@@ -43,7 +43,6 @@ export default function RetrieveTokenScreen({navigation, route}) {
             onPress={() =>
               navigation.navigate('QRCode', {
                 token: '10',
-                serialCom: route.params.serialCom,
               })
             }
           />
@@ -55,7 +54,6 @@ export default function RetrieveTokenScreen({navigation, route}) {
             onPress={() =>
               navigation.navigate('QRCode', {
                 token: '20',
-                serialCom: route.params.serialCom,
               })
             }
           />
@@ -67,7 +65,6 @@ export default function RetrieveTokenScreen({navigation, route}) {
             onPress={() =>
               navigation.navigate('QRCode', {
                 token: '30',
-                serialCom: route.params.serialCom,
               })
             }
           />
@@ -81,7 +78,6 @@ export default function RetrieveTokenScreen({navigation, route}) {
             onPress={() =>
               navigation.navigate('QRCode', {
                 token: '50',
-                serialCom: route.params.serialCom,
               })
             }
           />
@@ -93,7 +89,6 @@ export default function RetrieveTokenScreen({navigation, route}) {
             onPress={() =>
               navigation.navigate('QRCode', {
                 token: '100',
-                serialCom: route.params.serialCom,
               })
             }
           />
@@ -106,13 +101,7 @@ export default function RetrieveTokenScreen({navigation, route}) {
           />
         </View>
       </View>
-      {open && (
-        <InputModel
-          open={open}
-          close={() => setOpen(false)}
-          serialCom={route.params.serialCom}
-        />
-      )}
+      {open && <InputModel open={open} close={() => setOpen(false)} />}
     </TimerLayout>
   );
 }
