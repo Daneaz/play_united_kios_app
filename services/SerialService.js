@@ -24,6 +24,7 @@ export async function dispenseToken(
     cmd = constructLeYaoYaoCmd('D102', '0E', token);
   }
   return await executeCmd(
+    user,
     serialCom,
     cmd,
     transId,
@@ -165,21 +166,29 @@ async function handlerReceived(user, buff, transId, setMsg, setType, lang) {
 }
 
 async function handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang) {
+  console.log(`size: ${hex.length}, hex: ${hex}`);
   switch (hex.length) {
     case 44:
       // dispensing result
       let status = hex.substring(26, 28);
       let dispensedToken = hexReorderAndConvert(hex.substring(28, 32));
+
       switch (status) {
         case '00':
           if (transId) {
             await pushStatusToFail(transId, setMsg, setType);
           }
+          setMsg(
+            lang === CN
+              ? '出币失败。。。正在退还'
+              : 'Dispensing Fail, Refunding...',
+          );
           return;
         case '01':
           if (transId) {
             await pushStatusToSuccess(transId, setMsg, setType);
           }
+          setMsg(lang === CN ? '出币成功。。。' : 'Dispensing Success');
           return;
         case '02':
           setMsg(
@@ -205,6 +214,7 @@ async function handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang) {
           }
           return;
       }
+      break;
     case 30:
       // progress of dispensing token, sometimes we dont have the above result
       // we have to analyse base of this response
