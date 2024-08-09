@@ -15,3 +15,6 @@ export const SUCCESS = 'SUCCESS';
 export const DISPENSING = 'DISPENSING';
 export const PAID = 'PAID';
 export const REFUND = 'REFUND';
+
+export const RETRIEVE = 'RETRIEVE';
+export const PURCHASE = 'PURCHASE';

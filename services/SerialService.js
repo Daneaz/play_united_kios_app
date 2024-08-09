@@ -1,10 +1,11 @@
 import {fetchAPI, getData} from './Utility';
 import * as Constant from '../constants/Constant';
-import {CN} from '../constants/Constant';
+import {CN, PURCHASE, RETRIEVE} from '../constants/Constant';
 import {TimeStampTo10Digits} from './DateTimeUtils';
 
 export async function dispenseToken(
   serialCom,
+  transType,
   transId,
   token,
   setMsg,
@@ -27,6 +28,7 @@ export async function dispenseToken(
     user,
     serialCom,
     cmd,
+    transType,
     transId,
     setMsg,
     setType,
@@ -131,6 +133,7 @@ async function executeCmd(
   user,
   serialCom,
   cmd,
+  transType,
   transId,
   setMsg,
   setType,
@@ -146,7 +149,7 @@ async function executeCmd(
         : `Dispensing ${token} token...`,
     );
     serialCom.onReceived(buff =>
-      handlerReceived(user, buff, transId, setMsg, setType, lang),
+      handlerReceived(user, buff, transType, transId, setMsg, setType, lang),
     );
   } catch (error) {
     setType('ERROR');
@@ -154,18 +157,40 @@ async function executeCmd(
   }
 }
 
-async function handlerReceived(user, buff, transId, setMsg, setType, lang) {
+async function handlerReceived(
+  user,
+  buff,
+  transType,
+  transId,
+  setMsg,
+  setType,
+  lang,
+) {
   let hex = buff.toString('hex').toUpperCase();
   console.log('Received', formatHexMsg(hex));
 
   if (user.mobile < 10) {
-    await handleAAResponse(hex, transId, setMsg, setType, lang);
+    await handleAAResponse(hex, transType, transId, setMsg, setType, lang);
   } else {
-    await handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang);
+    await handleLeYaoYaoResponse(
+      hex,
+      transType,
+      transId,
+      setMsg,
+      setType,
+      lang,
+    );
   }
 }
 
-async function handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang) {
+async function handleLeYaoYaoResponse(
+  hex,
+  transType,
+  transId,
+  setMsg,
+  setType,
+  lang,
+) {
   console.log(`size: ${hex.length}, hex: ${hex}`);
   switch (hex.length) {
     case 44:
@@ -176,7 +201,7 @@ async function handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang) {
       switch (status) {
         case '00':
           if (transId) {
-            await pushStatusToFail(transId, setMsg, setType);
+            await pushStatusToFail(transType, transId, setMsg, setType);
           }
           setMsg(
             lang === CN
@@ -186,7 +211,7 @@ async function handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang) {
           return;
         case '01':
           if (transId) {
-            await pushStatusToSuccess(transId, setMsg, setType);
+            await pushStatusToSuccess(transType, transId, setMsg, setType);
           }
           setMsg(lang === CN ? '出币成功。。。' : 'Dispensing Success');
           return;
@@ -206,6 +231,7 @@ async function handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang) {
 
           if (transId) {
             await proceedWithInterrupt(
+              transType,
               transId,
               dispensedToken,
               setMsg,
@@ -221,7 +247,7 @@ async function handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang) {
       let unfinishedDispenseToken = hexReorderAndConvert(hex.substring(22, 26));
       if (unfinishedDispenseToken === 0) {
         if (transId) {
-          await pushStatusToSuccess(transId, setMsg, setType);
+          await pushStatusToSuccess(transType, transId, setMsg, setType);
         }
         return;
       } else {
@@ -249,11 +275,18 @@ async function handleLeYaoYaoResponse(hex, transId, setMsg, setType, lang) {
   }
 }
 
-async function handleAAResponse(hex, transId, setMsg, setType, lang) {
+async function handleAAResponse(
+  hex,
+  transType,
+  transId,
+  setMsg,
+  setType,
+  lang,
+) {
   if (hex === '55AA04C00000C4') {
     setMsg(lang === CN ? '出币完毕' : 'All tokens has been dispensed');
     if (transId) {
-      await pushStatusToSuccess(transId, setMsg, setType);
+      await pushStatusToSuccess(transType, transId, setMsg, setType);
     }
   } else {
     let dispensedToken = convertToDecimal(hex, 8, 12);
@@ -263,7 +296,13 @@ async function handleAAResponse(hex, transId, setMsg, setType, lang) {
         : `Not enough token, please contact our staff to add more tokens. Dispensed ${dispensedToken} tokens`,
     );
     if (transId) {
-      await proceedWithInterrupt(transId, dispensedToken, setMsg, setType);
+      await proceedWithInterrupt(
+        transType,
+        transId,
+        dispensedToken,
+        setMsg,
+        setType,
+      );
     }
   }
 }
@@ -344,30 +383,60 @@ function hexReorderAndConvert(hex) {
   return parseInt(reorderedHex, 16);
 }
 
-async function proceedWithInterrupt(transId, dispensedToken, setType, setMsg) {
+async function proceedWithInterrupt(
+  transType,
+  transId,
+  dispensedToken,
+  setType,
+  setMsg,
+) {
   try {
-    await fetchAPI(
-      'GET',
-      `tokenRetrieveMgt/pushToInterrupt/${transId}/${dispensedToken}`,
-    );
+    switch (transType) {
+      case PURCHASE:
+        await fetchAPI(
+          'GET',
+          `orderMgt/pushToInterrupt/${transId}/${dispensedToken}`,
+        );
+        break;
+      case RETRIEVE:
+        await fetchAPI(
+          'GET',
+          `tokenRetrieveMgt/pushToInterrupt/${transId}/${dispensedToken}`,
+        );
+        break;
+    }
   } catch (err) {
     setType('ERROR');
     setMsg(err);
   }
 }
 
-async function pushStatusToSuccess(transId, setMsg, setType) {
+async function pushStatusToSuccess(transType, transId, setMsg, setType) {
   try {
-    await fetchAPI('GET', `tokenRetrieveMgt/pushToSuccess/${transId}`);
+    switch (transType) {
+      case PURCHASE:
+        await fetchAPI('GET', `orderMgt/pushToDispensed/${transId}`);
+        break;
+      case RETRIEVE:
+        await fetchAPI('GET', `tokenRetrieveMgt/pushToSuccess/${transId}`);
+        break;
+    }
   } catch (err) {
     setType('ERROR');
     setMsg(err);
   }
 }
 
-async function pushStatusToFail(transId, setMsg, setType) {
+async function pushStatusToFail(transType, transId, setMsg, setType) {
   try {
-    await fetchAPI('GET', `tokenRetrieveMgt/pushToFail/${transId}`);
+    switch (transType) {
+      case PURCHASE:
+        await fetchAPI('GET', `orderMgt/pushToFail/${transId}`);
+        break;
+      case RETRIEVE:
+        await fetchAPI('GET', `tokenRetrieveMgt/pushToFail/${transId}`);
+        break;
+    }
   } catch (err) {
     setType('ERROR');
     setMsg(err);

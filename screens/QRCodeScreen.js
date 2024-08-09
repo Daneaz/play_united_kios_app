@@ -6,7 +6,13 @@ import QRCode from 'react-native-qrcode-svg';
 import {fetchAPI} from '../services/Utility';
 import MessageDialog from '../components/MessageDialog';
 import {GlobalContext} from '../states/GlobalState';
-import {CN, CREATED, DISPENSING, SUCCESS} from '../constants/Constant';
+import {
+  CN,
+  CREATED,
+  DISPENSING,
+  RETRIEVE,
+  SUCCESS,
+} from '../constants/Constant';
 import calculate from '../services/DimensionAdapter';
 import {dispenseToken} from '../services/SerialService';
 
@@ -96,6 +102,7 @@ export default function QRCodeScreen({route}) {
     try {
       await dispenseToken(
         state.serialCom,
+        RETRIEVE,
         transId,
         token,
         setMsg,
