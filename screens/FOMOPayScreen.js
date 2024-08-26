@@ -58,9 +58,9 @@ export default function FOMOPayScreen({route, navigation}) {
             }, 500);
           } else {
             setType('ERROR');
-            setMsg('Payment fail!!!');
+            setMsg('Unable to find order!!!');
           }
-        } else if (url.includes('PaymentCancel')) {
+        } else {
           setType('ERROR');
           setMsg('Payment fail!!!');
         }
