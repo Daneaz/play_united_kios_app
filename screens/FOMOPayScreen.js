@@ -14,7 +14,6 @@ import queryString from 'query-string';
 export default function FOMOPayScreen({route, navigation}) {
   const [msg, setMsg] = useState(null);
   const [type, setType] = useState(null);
-  const [lang, setLang] = useState();
   const [state, dispatch] = useContext(GlobalContext);
 
   useEffect(() => {
@@ -24,17 +23,11 @@ export default function FOMOPayScreen({route, navigation}) {
     }
   }, [state.time]);
 
-  useEffect(() => {
-    setLang(state.language);
-  }, [state.language]);
-
   const shouldStartLoadWithRequest = request => {
     try {
       const {url} = request;
-      console.log(!url.startsWith('playunited://'));
       return !url.startsWith('playunited://');
     } catch (err) {
-      console.log(err);
       return false;
     }
   };
@@ -83,7 +76,7 @@ export default function FOMOPayScreen({route, navigation}) {
         route.params.tokens,
         setMsg,
         setType,
-        lang,
+        state.language,
       );
     } catch (error) {
       setType('ERROR');
@@ -94,7 +87,7 @@ export default function FOMOPayScreen({route, navigation}) {
   return (
     <TimerLayout
       source={
-        lang === CN
+        state.language === CN
           ? require('../assets/images/purchase-bg-cn.png')
           : require('../assets/images/purchase-bg-en.png')
       }

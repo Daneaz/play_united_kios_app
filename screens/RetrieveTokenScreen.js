@@ -9,14 +9,12 @@ import InputModel from '../components/Input/InputModel';
 import calculate from '../services/DimensionAdapter';
 
 export default function RetrieveTokenScreen({navigation, route}) {
-  const [lang, setLang] = useState();
   const [tokenLang, setTokenLang] = useState();
   const [open, setOpen] = useState();
 
   const [state] = useContext(GlobalContext);
 
   useEffect(() => {
-    setLang(state.language);
     if (state.language === CN) {
       setTokenLang('币');
     } else {
@@ -27,7 +25,7 @@ export default function RetrieveTokenScreen({navigation, route}) {
   return (
     <TimerLayout
       source={
-        lang === CN
+        state.language === CN
           ? require('../assets/images/retrieve-bg-cn.png')
           : require('../assets/images/retrieve-bg-en.png')
       }
@@ -94,7 +92,7 @@ export default function RetrieveTokenScreen({navigation, route}) {
           />
           <ImageButton
             source={require('../assets/images/token-more.png')}
-            text={lang === CN ? '自定义' : 'Others'}
+            text={state.language === CN ? '自定义' : 'Others'}
             imageBtnStyle={styles.image}
             imageBtnTextStyle={styles.tokenText}
             onPress={() => setOpen(true)}

@@ -12,13 +12,8 @@ import calculate from '../services/DimensionAdapter';
 export default function PurchaseScreen({navigation}) {
   const [promotionList, setPromotionList] = React.useState(null);
   const [msg, setMsg] = useState(null);
-  const [lang, setLang] = useState();
 
   const [state] = useContext(GlobalContext);
-
-  useEffect(() => {
-    setLang(state.language);
-  }, [state.language]);
 
   useEffect(() => {
     getPromotionList();
@@ -39,7 +34,7 @@ export default function PurchaseScreen({navigation}) {
   return (
     <TimerLayout
       source={
-        lang === CN
+        state.language === CN
           ? require('../assets/images/purchase-bg-cn.png')
           : require('../assets/images/purchase-bg-en.png')
       }

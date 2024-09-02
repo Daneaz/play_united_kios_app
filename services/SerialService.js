@@ -191,7 +191,6 @@ async function handleLeYaoYaoResponse(
   setType,
   lang,
 ) {
-  console.log(`size: ${hex.length}, hex: ${hex}`);
   switch (hex.length) {
     case 44:
       // dispensing result

@@ -22,15 +22,9 @@ export default function QRCodeScreen({route}) {
   const [transId, setTransId] = useState(null);
   const [msg, setMsg] = useState(null);
   const [type, setType] = useState(null);
-  const [lang, setLang] = useState();
-
   const statusTimer = useRef();
 
   const [state] = useContext(GlobalContext);
-
-  useEffect(() => {
-    setLang(state.language);
-  }, [state.language]);
 
   useEffect(() => {
     generateQRCode();
@@ -107,7 +101,7 @@ export default function QRCodeScreen({route}) {
         token,
         setMsg,
         setType,
-        lang,
+        state.language,
       );
     } catch (error) {
       setType('ERROR');
@@ -127,7 +121,7 @@ export default function QRCodeScreen({route}) {
   return (
     <TimerLayout
       source={
-        lang === CN
+        state.language === CN
           ? require('../assets/images/retrieve-bg-cn.png')
           : require('../assets/images/retrieve-bg-en.png')
       }
@@ -149,7 +143,7 @@ export default function QRCodeScreen({route}) {
           </ImageBackground>
         </View>
         <Text fontSize={calculate(15)} style={styles.text}>
-          {lang === CN
+          {state.language === CN
             ? '请用 Play United App 扫码完成取币'
             : 'Please use Play United App to scan the QR code'}
         </Text>

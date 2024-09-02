@@ -28,7 +28,6 @@ const DATA = [
 
 export default function HomeScreen({navigation}) {
   const [backDoorCounter, setBackDoorCounter] = useState(0);
-  const [lang, setLang] = useState();
   const [msg, setMsg] = useState(null);
   const [type, setType] = useState(null);
   const [state, dispatch] = useContext(GlobalContext);
@@ -50,10 +49,6 @@ export default function HomeScreen({navigation}) {
       clearInterval(timer.current);
     }
   }, [state.isRunning]);
-
-  useEffect(() => {
-    setLang(state.language);
-  }, [state.language]);
 
   async function onLanguagePress() {
     if (state.language === CN) {
@@ -154,7 +149,7 @@ export default function HomeScreen({navigation}) {
         <View style={styles.buttonsPosition}>
           <ImageButton
             source={
-              lang === CN
+              state.language === CN
                 ? require('../assets/images/retrieve-cn.png')
                 : require('../assets/images/retrieve-en.png')
             }
@@ -167,18 +162,12 @@ export default function HomeScreen({navigation}) {
           />
           <ImageButton
             source={
-              lang === CN
+              state.language === CN
                 ? require('../assets/images/purchase-cn.png')
                 : require('../assets/images/purchase-en.png')
             }
             imageBtnStyle={styles.buttons}
             onPress={() => {
-              // setType('INFO');
-              // state.language === CN
-              //   ? setMsg('正在努力实现中。。。请用手机 App 购买')
-              //   : setMsg(
-              //       'Coming Soon!!! Please use our Play United App to purchase now',
-              //     );
               navigation.navigate('Purchase');
               dispatch({type: START});
               timer.current = setInterval(() => dispatch({type: TICK}), 1000);
