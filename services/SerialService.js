@@ -262,7 +262,7 @@ async function handlerLeyaoyaoReceived(
     await executeCmd(
       user,
       serialCom,
-      cmd,
+      nextCmd,
       transType,
       transId,
       setMsg,
