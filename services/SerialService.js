@@ -325,6 +325,9 @@ async function handleLeYaoYaoResponse(
   setType,
   lang,
 ) {
+  if (!hex) {
+    return STATUS_UNKNOWN;
+  }
   switch (hex.length) {
     case 28:
       // check status result, expecting 1
