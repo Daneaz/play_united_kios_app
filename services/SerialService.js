@@ -290,8 +290,8 @@ async function handleLeYaoYaoResponse(
       } else {
         setMsg(
           lang === CN
-            ? '出币失败。。。正在退还'
-            : 'Dispensing Fail, Refunding...',
+            ? '出币失败。。。请联系工作人员'
+            : 'Dispensing Fail, Please contact our staff...',
         );
         return;
       }
@@ -307,8 +307,8 @@ async function handleLeYaoYaoResponse(
           }
           setMsg(
             lang === CN
-              ? '出币失败。。。正在退还'
-              : 'Dispensing Fail, Refunding...',
+              ? '出币失败。。。请联系工作人员'
+              : 'Dispensing Fail, Please contact our staff...',
           );
           return;
         case '01':
