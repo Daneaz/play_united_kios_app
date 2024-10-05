@@ -115,7 +115,7 @@ export default function LoginScreen({navigation}) {
             </Layout>
             <Layout style={GlobalStyles.rowCenterContent}>
               <Text style={GlobalStyles.smallText}>
-                {`${ENV} Build Version: 20240701`}
+                {`${ENV} Build Version: 20241005`}
               </Text>
             </Layout>
           </Layout>
