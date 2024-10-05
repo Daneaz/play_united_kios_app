@@ -281,7 +281,7 @@ async function handlerLeyaoyaoReceived(
     case STATUS_OFFLINE:
     case STATUS_FAIL:
       if (transId) {
-        await pushStatusToFail(transType, transId, setMsg, setType);
+        // await pushStatusToFail(transType, transId, setMsg, setType);
       }
       setMsg(
         lang === CN
@@ -291,7 +291,7 @@ async function handlerLeyaoyaoReceived(
       break;
     case STATUS_SUCCESS:
       if (transId) {
-        await pushStatusToSuccess(transType, transId, setMsg, setType);
+        // await pushStatusToSuccess(transType, transId, setMsg, setType);
       }
       setMsg(lang === CN ? '出币成功。。。' : 'Dispensing Success');
       break;
@@ -355,15 +355,15 @@ async function handleLeYaoYaoResponse(
               : `Not enough token, please contact our staff to add more tokens. Dispensed ${dispensedToken} tokens`,
           );
 
-          if (transId) {
-            await proceedWithInterrupt(
-              transType,
-              transId,
-              dispensedToken,
-              setMsg,
-              setType,
-            );
-          }
+          // if (transId) {
+          //   await proceedWithInterrupt(
+          //     transType,
+          //     transId,
+          //     dispensedToken,
+          //     setMsg,
+          //     setType,
+          //   );
+          // }
           return STATUS_NOT_ENOUGH_TOKEN;
         default:
           return STATUS_UNKNOWN;
