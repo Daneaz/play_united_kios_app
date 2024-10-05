@@ -3,6 +3,8 @@ import * as Constant from '../constants/Constant';
 import {CN, PURCHASE, RETRIEVE} from '../constants/Constant';
 import {TimeStampTo10Digits} from './DateTimeUtils';
 
+const STATUS_ONLINE = 'Online';
+
 export async function dispenseToken(
   serialCom,
   transType,
@@ -17,12 +19,16 @@ export async function dispenseToken(
   );
   let user = await getData(Constant.USER);
   let cmd;
+  let nextCmd;
   if (user.mobile === 0) {
     cmd = constructFEHeaderMsg('02', `${token}`);
   } else if (user.mobile < 10) {
     cmd = constructAAHexCmd('C0', '04', token);
   } else {
-    cmd = constructLeYaoYaoCmd('D102', '0E', token);
+    // LeYaoyao need to check the status before dispense
+    let uniqueCode = `00${TimeStampTo10Digits()}`;
+    cmd = constructLeYaoYaoCheckStatusCmd('D101', '0A', token, uniqueCode);
+    nextCmd = constructLeYaoYaoDispenseCmd('D102', '0E', token, uniqueCode);
   }
   return await executeCmd(
     user,
@@ -34,6 +40,7 @@ export async function dispenseToken(
     setType,
     lang,
     token,
+    nextCmd,
   );
 }
 
@@ -77,14 +84,42 @@ function constructAAHexCmd(cmdType, dataSize, data) {
   return cmd;
 }
 
-function constructLeYaoYaoCmd(cmdType, dataSize, token) {
+function constructLeYaoYaoCheckStatusCmd(cmdType, dataSize, uniqueCode) {
+  let header = 'AA';
+  let tail = 'DD';
+  let index = '01';
+  let cmd = cmdType.substring(0, 2);
+  let subcmd = cmdType.substring(2, 4);
+  let checkSum = [];
+  checkSum.push(dataSize);
+  checkSum.push(index);
+  checkSum.push(cmd);
+  checkSum.push(subcmd);
+  checkSum.push(uniqueCode.substring(0, 2));
+  checkSum.push(uniqueCode.substring(2, 4));
+  checkSum.push(uniqueCode.substring(4, 6));
+  checkSum.push(uniqueCode.substring(6, 8));
+  checkSum.push(uniqueCode.substring(8, 10));
+  checkSum.push(uniqueCode.substring(10, 12));
+  let fullCmd =
+    header +
+    dataSize +
+    index +
+    cmdType +
+    uniqueCode +
+    calculateCheckSum(checkSum) +
+    tail;
+  console.log(`CheckStatusCmd: ${formatHexMsg(fullCmd)}`);
+  return fullCmd;
+}
+
+function constructLeYaoYaoDispenseCmd(cmdType, dataSize, token, uniqueCode) {
   let header = 'AA';
   let tail = 'DD';
   let index = '01'; // indicating the identity is APP
   let cmd = cmdType.substring(0, 2);
   let subcmd = cmdType.substring(2, 4);
   // use the 10 digit timestamp add 00 as prefix to form a 12 char string
-  let uniqueCode = `00${TimeStampTo10Digits()}`;
   let amount = '0001'; // default to 1, not using it, but also cannot be 0
 
   let checkSum = [];
@@ -115,7 +150,7 @@ function constructLeYaoYaoCmd(cmdType, dataSize, token) {
     tokenInHex +
     calculateCheckSum(checkSum) +
     tail;
-  console.log(`cmd: ${formatHexMsg(fullCmd)}`);
+  console.log(`DispenseCmd: ${formatHexMsg(fullCmd)}`);
   return fullCmd;
 }
 
@@ -139,6 +174,7 @@ async function executeCmd(
   setType,
   lang,
   token,
+  nextCmd,
 ) {
   try {
     await serialCom.send(cmd);
@@ -148,9 +184,36 @@ async function executeCmd(
         ? `${token}个币，出币中。。。`
         : `Dispensing ${token} token...`,
     );
-    serialCom.onReceived(buff =>
-      handlerReceived(user, buff, transType, transId, setMsg, setType, lang),
-    );
+    if (user.mobile < 10) {
+      serialCom.onReceived(buff =>
+        handlerReceived(
+          user,
+          buff,
+          transType,
+          transId,
+          setMsg,
+          setType,
+          lang,
+          nextCmd,
+        ),
+      );
+    } else {
+      serialCom.onReceived(buff =>
+        handlerLeyaoyaoReceived(
+          user,
+          serialCom,
+          cmd,
+          transType,
+          transId,
+          setMsg,
+          setType,
+          lang,
+          token,
+          nextCmd,
+          buff,
+        ),
+      );
+    }
   } catch (error) {
     setType('ERROR');
     setMsg(JSON.stringify(error));
@@ -168,17 +231,43 @@ async function handlerReceived(
 ) {
   let hex = buff.toString('hex').toUpperCase();
   console.log('Received', formatHexMsg(hex));
+  await handleAAResponse(hex, transType, transId, setMsg, setType, lang);
+}
 
-  if (user.mobile < 10) {
-    await handleAAResponse(hex, transType, transId, setMsg, setType, lang);
-  } else {
-    await handleLeYaoYaoResponse(
-      hex,
+async function handlerLeyaoyaoReceived(
+  user,
+  serialCom,
+  cmd,
+  transType,
+  transId,
+  setMsg,
+  setType,
+  lang,
+  token,
+  nextCmd,
+  buff,
+) {
+  let hex = buff.toString('hex').toUpperCase();
+  console.log('Received', formatHexMsg(hex));
+  let result = await handleLeYaoYaoResponse(
+    hex,
+    transType,
+    transId,
+    setMsg,
+    setType,
+    lang,
+  );
+  if (result === STATUS_ONLINE) {
+    await executeCmd(
+      user,
+      serialCom,
+      cmd,
       transType,
       transId,
       setMsg,
       setType,
       lang,
+      token,
     );
   }
 }
@@ -192,6 +281,19 @@ async function handleLeYaoYaoResponse(
   lang,
 ) {
   switch (hex.length) {
+    case 28:
+      // check status result, expecting 01
+      let machineStatus = hex.substring(23, 25);
+      if (machineStatus === '0') {
+        return STATUS_ONLINE;
+      } else {
+        setMsg(
+          lang === CN
+            ? '出币失败。。。正在退还'
+            : 'Dispensing Fail, Refunding...',
+        );
+        return;
+      }
     case 44:
       // dispensing result
       let status = hex.substring(26, 28);
