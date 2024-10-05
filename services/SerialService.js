@@ -27,9 +27,10 @@ export async function dispenseToken(
   } else {
     // LeYaoyao need to check the status before dispense
     let uniqueCode = `00${TimeStampTo10Digits()}`;
-    cmd = constructLeYaoYaoCheckStatusCmd('D101', '0A', token, uniqueCode);
+    cmd = constructLeYaoYaoCheckStatusCmd('D101', '0A', uniqueCode);
     nextCmd = constructLeYaoYaoDispenseCmd('D102', '0E', token, uniqueCode);
   }
+
   return await executeCmd(
     user,
     serialCom,
