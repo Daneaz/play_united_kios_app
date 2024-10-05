@@ -283,9 +283,9 @@ async function handleLeYaoYaoResponse(
 ) {
   switch (hex.length) {
     case 28:
-      // check status result, expecting 01
-      let machineStatus = hex.substring(23, 25);
-      if (machineStatus === '0') {
+      // check status result, expecting 1
+      let machineStatus = hex.substring(23, 24);
+      if (machineStatus === '1') {
         return STATUS_ONLINE;
       } else {
         setMsg(
