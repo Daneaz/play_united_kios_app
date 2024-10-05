@@ -350,8 +350,8 @@ async function handleLeYaoYaoResponse(
         case '03':
           setMsg(
             lang === CN
-              ? `库存不足，请联系工作人员补币。 已出${dispensedToken}个币`
-              : `Not enough token, please contact our staff to add more tokens. Dispensed ${dispensedToken} tokens`,
+              ? '库存不足，请联系工作人员补币。'
+              : 'Not enough token, please contact our staff to add more tokens.',
           );
 
           if (transId) {
