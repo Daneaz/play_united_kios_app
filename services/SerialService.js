@@ -3,7 +3,13 @@ import * as Constant from '../constants/Constant';
 import {CN, PURCHASE, RETRIEVE} from '../constants/Constant';
 import {TimeStampTo10Digits} from './DateTimeUtils';
 
-const STATUS_ONLINE = 'Online';
+const STATUS_ONLINE = 'ON_LINE';
+const STATUS_OFFLINE = 'OFF_LINE';
+const STATUS_FAIL = 'FAIL';
+const STATUS_SUCCESS = 'SUCCESS';
+const STATUS_DISPENSING = 'DISPENSING';
+const STATUS_NOT_ENOUGH_TOKEN = 'NOT_ENOUGH_TOKEN';
+const STATUS_UNKNOWN = 'UNKNOWN';
 
 export async function dispenseToken(
   serialCom,
@@ -258,18 +264,56 @@ async function handlerLeyaoyaoReceived(
     setType,
     lang,
   );
-  if (result === STATUS_ONLINE) {
-    await executeCmd(
-      user,
-      serialCom,
-      nextCmd,
-      transType,
-      transId,
-      setMsg,
-      setType,
-      lang,
-      token,
-    );
+  switch (result) {
+    case STATUS_ONLINE:
+      await executeCmd(
+        user,
+        serialCom,
+        nextCmd,
+        transType,
+        transId,
+        setMsg,
+        setType,
+        lang,
+        token,
+      );
+      break;
+    case STATUS_OFFLINE:
+    case STATUS_FAIL:
+      if (transId) {
+        await pushStatusToFail(transType, transId, setMsg, setType);
+      }
+      setMsg(
+        lang === CN
+          ? '出币失败。。。请联系工作人员'
+          : 'Dispensing Fail, Please contact our staff...',
+      );
+      break;
+    case STATUS_SUCCESS:
+      if (transId) {
+        await pushStatusToSuccess(transType, transId, setMsg, setType);
+      }
+      setMsg(lang === CN ? '出币成功。。。' : 'Dispensing Success');
+      break;
+    case STATUS_DISPENSING:
+      setMsg(lang === CN ? '正在出币。。。 ' : 'Dispensing tokens');
+      break;
+    case STATUS_NOT_ENOUGH_TOKEN:
+      break;
+    case STATUS_UNKNOWN:
+      setMsg(
+        lang === CN
+          ? '库存不足/或故障，请联系工作人员'
+          : 'Not enough token or encounter issue, please contact our staff',
+      );
+      break;
+    default:
+      setMsg(
+        lang === CN
+          ? '未知故障，请联系工作人员'
+          : 'Unknown Error, please contact our staff',
+      );
+      break;
   }
 }
 
@@ -288,42 +332,19 @@ async function handleLeYaoYaoResponse(
       if (machineStatus === '1') {
         return STATUS_ONLINE;
       } else {
-        setMsg(
-          lang === CN
-            ? '出币失败。。。请联系工作人员'
-            : 'Dispensing Fail, Please contact our staff...',
-        );
-        return;
+        return STATUS_OFFLINE;
       }
     case 44:
       // dispensing result
       let status = hex.substring(26, 28);
       let dispensedToken = hexReorderAndConvert(hex.substring(28, 32));
-
       switch (status) {
         case '00':
-          if (transId) {
-            await pushStatusToFail(transType, transId, setMsg, setType);
-          }
-          setMsg(
-            lang === CN
-              ? '出币失败。。。请联系工作人员'
-              : 'Dispensing Fail, Please contact our staff...',
-          );
-          return;
+          return STATUS_FAIL;
         case '01':
-          if (transId) {
-            await pushStatusToSuccess(transType, transId, setMsg, setType);
-          }
-          setMsg(lang === CN ? '出币成功。。。' : 'Dispensing Success');
-          return;
+          return STATUS_SUCCESS;
         case '02':
-          setMsg(
-            lang === CN
-              ? `正在出币。。。 已出${dispensedToken}个币`
-              : `Dispensing... Dispensed ${dispensedToken} tokens`,
-          );
-          return;
+          return STATUS_DISPENSING;
         case '03':
           setMsg(
             lang === CN
@@ -340,40 +361,24 @@ async function handleLeYaoYaoResponse(
               setType,
             );
           }
-          return;
+          return STATUS_NOT_ENOUGH_TOKEN;
+        default:
+          return STATUS_UNKNOWN;
       }
-      break;
     case 30:
       // progress of dispensing token, sometimes we dont have the above result
       // we have to analyse base of this response
       let unfinishedDispenseToken = hexReorderAndConvert(hex.substring(22, 26));
       if (unfinishedDispenseToken === 0) {
-        if (transId) {
-          await pushStatusToSuccess(transType, transId, setMsg, setType);
-        }
-        return;
+        return STATUS_SUCCESS;
       } else {
-        setMsg(
-          lang === CN
-            ? `正在出币。。。 剩余${unfinishedDispenseToken}个币`
-            : `Dispensing... Remaining ${unfinishedDispenseToken} tokens`,
-        );
+        return STATUS_DISPENSING;
       }
-      break;
     case 36:
       // problem with machine, maybe out of token
-      setMsg(
-        lang === CN
-          ? '库存不足/或故障，请联系工作人员补币'
-          : 'Not enough token or encounter issue, please contact our staff',
-      );
-      break;
+      return STATUS_UNKNOWN;
     default:
-      setMsg(
-        lang === CN
-          ? '未知故障，请联系工作人员补币'
-          : 'Unknown Error, please contact our staff',
-      );
+      return STATUS_UNKNOWN;
   }
 }
 
