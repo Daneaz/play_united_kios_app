@@ -296,6 +296,7 @@ async function handlerLeyaoyaoReceived(
       setMsg(lang === CN ? '出币成功。。。' : 'Dispensing Success');
       break;
     case STATUS_DISPENSING:
+      setMsg(lang === CN ? '正在出币。。。 ' : 'Dispensing tokens');
       break;
     case STATUS_NOT_ENOUGH_TOKEN:
       break;
@@ -324,9 +325,6 @@ async function handleLeYaoYaoResponse(
   setType,
   lang,
 ) {
-  if (!hex) {
-    return STATUS_UNKNOWN;
-  }
   switch (hex.length) {
     case 28:
       // check status result, expecting 1
@@ -350,8 +348,8 @@ async function handleLeYaoYaoResponse(
         case '03':
           setMsg(
             lang === CN
-              ? '库存不足，请联系工作人员补币。'
-              : 'Not enough token, please contact our staff to add more tokens.',
+              ? `库存不足，请联系工作人员补币。 已出${dispensedToken}个币`
+              : `Not enough token, please contact our staff to add more tokens. Dispensed ${dispensedToken} tokens`,
           );
 
           if (transId) {
