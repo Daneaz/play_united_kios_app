@@ -2,19 +2,33 @@ import React, {useContext, useEffect, useState} from 'react';
 import {WebView} from 'react-native-webview';
 import {View} from 'react-native';
 import {GlobalContext} from '../states/GlobalState';
-import {CN, PURCHASE, RESET, SUCCESS} from '../constants/Constant';
+import * as Constant from '../constants/Constant';
+import {
+  CN,
+  MESSAGE_RECEIVED,
+  PURCHASE,
+  RESET,
+  STATUS_ONLINE,
+  SUCCESS,
+} from '../constants/Constant';
 import calculate from '../services/DimensionAdapter';
 import TimerLayout from '../components/Layouts/TimerLayout';
 import Colors from '../constants/Colors';
-import {dispenseToken} from '../services/SerialService';
+import {
+  ConstructDispenseCmd,
+  ConstructStatusCheckCmd,
+  HandleResponse,
+} from '../services/SerialService';
 import MessageDialog from '../components/MessageDialog';
-import {fetchAPI} from '../services/Utility';
+import {fetchAPI, getData} from '../services/Utility';
 import queryString from 'query-string';
+import {TimeStampTo10Digits} from '../services/DateTimeUtils';
 
 export default function FOMOPayScreen({route, navigation}) {
   const [msg, setMsg] = useState(null);
   const [type, setType] = useState(null);
   const [state, dispatch] = useContext(GlobalContext);
+  const [instruction, setInstruction] = useState(null);
 
   useEffect(() => {
     if (state.time <= 0) {
@@ -22,6 +36,35 @@ export default function FOMOPayScreen({route, navigation}) {
       navigation.navigate('Home');
     }
   }, [state.time]);
+
+  useEffect(() => {
+    // Assuming you want to log the latest message or use it in some logic
+    const isOnline = async () => {
+      if (state.result) {
+        console.log('Latest Received Message:', state.result);
+        if (state.result.status === STATUS_ONLINE) {
+          //clear the msg
+          dispatch({type: MESSAGE_RECEIVED, payload: ''});
+          let cmd = await ConstructDispenseCmd(
+            instruction.token,
+            instruction.uniqueCode,
+          );
+
+          await state.serialCom.send(cmd);
+        } else {
+          await HandleResponse(
+            state.result,
+            PURCHASE,
+            transId,
+            setMsg,
+            setType,
+            state.language,
+          );
+        }
+      }
+    };
+    isOnline();
+  }, [state.result]); // Runs every time state.result changes
 
   const shouldStartLoadWithRequest = request => {
     try {
@@ -69,15 +112,21 @@ export default function FOMOPayScreen({route, navigation}) {
 
   async function handleDispenseToken(id) {
     try {
-      await dispenseToken(
-        state.serialCom,
-        PURCHASE,
-        id,
-        route.params.tokens,
-        setMsg,
-        setType,
-        state.language,
-      );
+      let token = route.params.tokens;
+      let user = await getData(Constant.USER);
+      if (user.mobile <= 10) {
+        await ConstructDispenseCmd(token);
+      } else {
+        // LeYaoYao needs to check status before dispense, and the unique code needs to be equal
+        let timestamp = `00${TimeStampTo10Digits()}`;
+        let instructObj = {
+          uniqueCode: timestamp,
+          token: token,
+        };
+        setInstruction(instructObj);
+        let cmd = await ConstructStatusCheckCmd(timestamp);
+        await state.serialCom.send(cmd);
+      }
     } catch (error) {
       setType('ERROR');
       setMsg(JSON.stringify(error));

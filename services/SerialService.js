@@ -132,21 +132,7 @@ function calculateCheckSum(checkSum) {
   return sum;
 }
 
-async function handlerReceived(
-  user,
-  buff,
-  transType,
-  transId,
-  setMsg,
-  setType,
-  lang,
-) {
-  let hex = buff.toString('hex').toUpperCase();
-  console.log('Received', formatHexMsg(hex));
-  await handleAAResponse(hex, transType, transId, setMsg, setType, lang);
-}
-
-export async function HandleLeYaoYaoResponse(
+export async function HandleResponse(
   result,
   transType,
   transId,
@@ -156,7 +142,6 @@ export async function HandleLeYaoYaoResponse(
 ) {
   switch (result.status) {
     case STATUS_ONLINE:
-      // TODO continue
       break;
     case STATUS_OFFLINE:
     case STATUS_FAIL:

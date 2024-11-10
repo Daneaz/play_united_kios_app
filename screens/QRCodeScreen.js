@@ -20,7 +20,7 @@ import calculate from '../services/DimensionAdapter';
 import {
   ConstructDispenseCmd,
   ConstructStatusCheckCmd,
-  HandleLeYaoYaoResponse,
+  HandleResponse,
 } from '../services/SerialService';
 import {TimeStampTo10Digits} from '../services/DateTimeUtils';
 
@@ -57,7 +57,7 @@ export default function QRCodeScreen({route}) {
 
           await state.serialCom.send(cmd);
         } else {
-          await HandleLeYaoYaoResponse(
+          await HandleResponse(
             state.result,
             RETRIEVE,
             transId,
