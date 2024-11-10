@@ -1,74 +1,35 @@
 import {fetchAPI, getData} from './Utility';
 import * as Constant from '../constants/Constant';
-import {CN, PURCHASE, RETRIEVE} from '../constants/Constant';
-import {TimeStampTo10Digits} from './DateTimeUtils';
+import {
+  CN,
+  PURCHASE,
+  RETRIEVE,
+  STATUS_DISPENSING,
+  STATUS_FAIL,
+  STATUS_NOT_ENOUGH_TOKEN,
+  STATUS_OFFLINE,
+  STATUS_ONLINE,
+  STATUS_PROCESS_DISPENSING,
+  STATUS_SUCCESS,
+  STATUS_UNKNOWN,
+} from '../constants/Constant';
 
-const STATUS_ONLINE = 'ON_LINE';
-const STATUS_OFFLINE = 'OFF_LINE';
-const STATUS_FAIL = 'FAIL';
-const STATUS_SUCCESS = 'SUCCESS';
-const STATUS_DISPENSING = 'DISPENSING';
-const STATUS_NOT_ENOUGH_TOKEN = 'NOT_ENOUGH_TOKEN';
-const STATUS_UNKNOWN = 'UNKNOWN';
+export async function ConstructStatusCheckCmd(uniqueCode) {
+  return constructLeYaoYaoCheckStatusCmd('D101', '0A', uniqueCode);
+}
 
-export async function dispenseToken(
-  serialCom,
-  transType,
-  transId,
-  token,
-  setMsg,
-  setType,
-  lang,
-) {
-  setMsg(
-    lang === CN ? '正在发送命令。。。' : 'Sending command to token machine',
-  );
+export async function ConstructDispenseCmd(token, uniqueCode) {
   let user = await getData(Constant.USER);
   let cmd;
-  let nextCmd;
   if (user.mobile === 0) {
     cmd = constructFEHeaderMsg('02', `${token}`);
   } else if (user.mobile < 10) {
     cmd = constructAAHexCmd('C0', '04', token);
   } else {
     // LeYaoyao need to check the status before dispense
-    let uniqueCode = `00${TimeStampTo10Digits()}`;
-    cmd = constructLeYaoYaoCheckStatusCmd('D101', '0A', uniqueCode);
-    nextCmd = constructLeYaoYaoDispenseCmd('D102', '0E', token, uniqueCode);
+    cmd = constructLeYaoYaoDispenseCmd('D102', '0E', token, uniqueCode);
   }
-
-  return await executeCmd(
-    user,
-    serialCom,
-    cmd,
-    transType,
-    transId,
-    setMsg,
-    setType,
-    lang,
-    token,
-    nextCmd,
-  );
-}
-
-export async function openOrCloseCashier(serialCom, open, setMsg, setType) {
-  let user = await getData(Constant.USER);
-  let cmd;
-  if (user.mobile === 0) {
-    if (open) {
-      cmd = constructFEHeaderMsg('01', '02');
-    } else {
-      cmd = constructFEHeaderMsg('01', '00');
-    }
-  } else {
-    if (open) {
-      cmd = constructAAHexCmd('C2', '03', '01');
-    } else {
-      cmd = constructAAHexCmd('C2', '03', '00');
-    }
-  }
-
-  await executeCmd(user, serialCom, cmd, setMsg, setType);
+  return cmd;
 }
 
 function constructAAHexCmd(cmdType, dataSize, data) {
@@ -130,7 +91,7 @@ function constructLeYaoYaoDispenseCmd(cmdType, dataSize, token, uniqueCode) {
   let amount = '0001'; // default to 1, not using it, but also cannot be 0
 
   let checkSum = [];
-  let tokenInHex = decimalToHexLowHigh(token);
+  let tokenInHex = decimalToHexLowHigh(Number(token));
 
   checkSum.push(dataSize);
   checkSum.push(index);
@@ -171,62 +132,6 @@ function calculateCheckSum(checkSum) {
   return sum;
 }
 
-async function executeCmd(
-  user,
-  serialCom,
-  cmd,
-  transType,
-  transId,
-  setMsg,
-  setType,
-  lang,
-  token,
-  nextCmd,
-) {
-  try {
-    await serialCom.send(cmd);
-    setType('SUCCESS');
-    setMsg(
-      lang === CN
-        ? `${token}个币，出币中。。。`
-        : `Dispensing ${token} token...`,
-    );
-    if (user.mobile < 10) {
-      serialCom.onReceived(buff =>
-        handlerReceived(
-          user,
-          buff,
-          transType,
-          transId,
-          setMsg,
-          setType,
-          lang,
-          nextCmd,
-        ),
-      );
-    } else {
-      serialCom.onReceived(buff =>
-        handlerLeyaoyaoReceived(
-          user,
-          serialCom,
-          cmd,
-          transType,
-          transId,
-          setMsg,
-          setType,
-          lang,
-          token,
-          nextCmd,
-          buff,
-        ),
-      );
-    }
-  } catch (error) {
-    setType('ERROR');
-    setMsg(JSON.stringify(error));
-  }
-}
-
 async function handlerReceived(
   user,
   buff,
@@ -241,42 +146,17 @@ async function handlerReceived(
   await handleAAResponse(hex, transType, transId, setMsg, setType, lang);
 }
 
-async function handlerLeyaoyaoReceived(
-  user,
-  serialCom,
-  cmd,
+export async function HandleLeYaoYaoResponse(
+  result,
   transType,
   transId,
   setMsg,
   setType,
   lang,
-  token,
-  nextCmd,
-  buff,
 ) {
-  let hex = buff.toString('hex').toUpperCase();
-  console.log('Received', formatHexMsg(hex));
-  let result = await handleLeYaoYaoResponse(
-    hex,
-    transType,
-    transId,
-    setMsg,
-    setType,
-    lang,
-  );
-  switch (result) {
+  switch (result.status) {
     case STATUS_ONLINE:
-      await executeCmd(
-        user,
-        serialCom,
-        nextCmd,
-        transType,
-        transId,
-        setMsg,
-        setType,
-        lang,
-        token,
-      );
+      // TODO continue
       break;
     case STATUS_OFFLINE:
     case STATUS_FAIL:
@@ -293,12 +173,37 @@ async function handlerLeyaoyaoReceived(
       if (transId) {
         await pushStatusToSuccess(transType, transId, setMsg, setType);
       }
-      setMsg(lang === CN ? '出币成功。。。' : 'Dispensing Success');
+      setMsg(lang === CN ? '出币完毕' : 'All tokens has been dispensed');
       break;
     case STATUS_DISPENSING:
-      setMsg(lang === CN ? '正在出币。。。 ' : 'Dispensing tokens');
+      setMsg(
+        lang === CN
+          ? `正在出币。。。已出${result.token}`
+          : `Dispensing tokens, Dispensed ${result.token} tokens`,
+      );
+      break;
+    case STATUS_PROCESS_DISPENSING:
+      setMsg(
+        lang === CN
+          ? `正在出币。。。剩余 ${result.token}`
+          : `Dispensing tokens, Remaining ${result.token} tokens`,
+      );
       break;
     case STATUS_NOT_ENOUGH_TOKEN:
+      setMsg(
+        lang === CN
+          ? `库存不足，请联系工作人员补币。 已出${result.token}个币`
+          : `Not enough token, please contact our staff to add more tokens. Dispensed ${result.token} tokens`,
+      );
+      if (transId) {
+        await proceedWithInterrupt(
+          transType,
+          transId,
+          result.token,
+          setMsg,
+          setType,
+        );
+      }
       break;
     case STATUS_UNKNOWN:
       setMsg(
@@ -315,108 +220,6 @@ async function handlerLeyaoyaoReceived(
       );
       break;
   }
-}
-
-async function handleLeYaoYaoResponse(
-  hex,
-  transType,
-  transId,
-  setMsg,
-  setType,
-  lang,
-) {
-  switch (hex.length) {
-    case 28:
-      // check status result, expecting 1
-      let machineStatus = hex.substring(23, 24);
-      if (machineStatus === '1') {
-        return STATUS_ONLINE;
-      } else {
-        return STATUS_OFFLINE;
-      }
-    case 44:
-      // dispensing result
-      let status = hex.substring(26, 28);
-      let dispensedToken = hexReorderAndConvert(hex.substring(28, 32));
-      switch (status) {
-        case '00':
-          return STATUS_FAIL;
-        case '01':
-          return STATUS_SUCCESS;
-        case '02':
-          return STATUS_DISPENSING;
-        case '03':
-          setMsg(
-            lang === CN
-              ? `库存不足，请联系工作人员补币。 已出${dispensedToken}个币`
-              : `Not enough token, please contact our staff to add more tokens. Dispensed ${dispensedToken} tokens`,
-          );
-
-          if (transId) {
-            await proceedWithInterrupt(
-              transType,
-              transId,
-              dispensedToken,
-              setMsg,
-              setType,
-            );
-          }
-          return STATUS_NOT_ENOUGH_TOKEN;
-        default:
-          return STATUS_UNKNOWN;
-      }
-    case 30:
-      // progress of dispensing token, sometimes we dont have the above result
-      // we have to analyse base of this response
-      let unfinishedDispenseToken = hexReorderAndConvert(hex.substring(22, 26));
-      if (unfinishedDispenseToken === 0) {
-        return STATUS_SUCCESS;
-      } else {
-        return STATUS_DISPENSING;
-      }
-    case 36:
-      // problem with machine, maybe out of token
-      return STATUS_UNKNOWN;
-    default:
-      return STATUS_UNKNOWN;
-  }
-}
-
-async function handleAAResponse(
-  hex,
-  transType,
-  transId,
-  setMsg,
-  setType,
-  lang,
-) {
-  if (hex === '55AA04C00000C4') {
-    setMsg(lang === CN ? '出币完毕' : 'All tokens has been dispensed');
-    if (transId) {
-      await pushStatusToSuccess(transType, transId, setMsg, setType);
-    }
-  } else {
-    let dispensedToken = convertToDecimal(hex, 8, 12);
-    setMsg(
-      lang === CN
-        ? `库存不足，请联系工作人员补币。 已出${dispensedToken}个币`
-        : `Not enough token, please contact our staff to add more tokens. Dispensed ${dispensedToken} tokens`,
-    );
-    if (transId) {
-      await proceedWithInterrupt(
-        transType,
-        transId,
-        dispensedToken,
-        setMsg,
-        setType,
-      );
-    }
-  }
-}
-
-function convertToDecimal(hex, start, end) {
-  let dispensedToken = parseInt(hex.substring(start, end), 16);
-  return dispensedToken;
 }
 
 function formatHexMsg(msg) {
@@ -473,21 +276,6 @@ function decimalToHexLowHigh(decimal) {
 
   // Concatenate lower byte on the left, then higher byte on the right
   return higherByte + lowerByte;
-}
-
-function hexReorderAndConvert(hex) {
-  // Ensure the hex string is 4 characters long and uppercase
-  hex = hex.toUpperCase().padStart(4, '0');
-
-  // Extract lower and higher bytes
-  let lowerByte = hex.substring(0, 2); // Lower byte (first 2 characters)
-  let higherByte = hex.substring(2); // Higher byte (last 2 characters)
-
-  // Convert it back
-  let reorderedHex = higherByte + lowerByte;
-
-  // Convert reordered hex to decimal
-  return parseInt(reorderedHex, 16);
 }
 
 async function proceedWithInterrupt(

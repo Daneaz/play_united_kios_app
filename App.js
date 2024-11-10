@@ -78,11 +78,11 @@ function App() {
   return (
     <ThemeContext.Provider value={{theme, toggleTheme}}>
       <ApplicationProvider {...eva} theme={eva[theme]}>
-        <GlobalContextProvider>
-          <NavigationContainer>
+        <NavigationContainer>
+          <GlobalContextProvider>
             <AuthStackScreen />
-          </NavigationContainer>
-        </GlobalContextProvider>
+          </GlobalContextProvider>
+        </NavigationContainer>
       </ApplicationProvider>
     </ThemeContext.Provider>
   );

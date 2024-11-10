@@ -8,13 +8,11 @@ import {
 } from 'react-native';
 import ImageButton from '../components/Button/ImageButton';
 import * as Constant from '../constants/Constant';
-import {CN, EN, INIT, START, TICK} from '../constants/Constant';
+import {CN, EN, START, TICK} from '../constants/Constant';
 import {GlobalContext} from '../states/GlobalState';
-import SerialPortAPI from 'react-native-serial-port-api';
-import MessageDialog from '../components/MessageDialog';
 import calculate from '../services/DimensionAdapter';
 import {useIsFocused} from '@react-navigation/native';
-import {getData, removeData} from '../services/Utility';
+import {removeData} from '../services/Utility';
 import Carousel from 'react-native-snap-carousel';
 import Video from 'react-native-video';
 
@@ -28,8 +26,6 @@ const DATA = [
 
 export default function HomeScreen({navigation}) {
   const [backDoorCounter, setBackDoorCounter] = useState(0);
-  const [msg, setMsg] = useState(null);
-  const [type, setType] = useState(null);
   const [state, dispatch] = useContext(GlobalContext);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -38,9 +34,6 @@ export default function HomeScreen({navigation}) {
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    if (isFocused && !state.serialCom) {
-      init();
-    }
     setBackDoorCounter(0);
   }, [isFocused]);
 
@@ -61,31 +54,6 @@ export default function HomeScreen({navigation}) {
       await removeData(Constant.USER);
       await removeData(Constant.TOKEN);
       navigation.navigate('LogIn');
-    }
-  }
-
-  async function init() {
-    try {
-      let port, baudRate;
-      let user = await getData(Constant.USER);
-      if (user.mobile === 0) {
-        port = '/dev/ttyS2';
-        baudRate = 115200;
-      } else if (user.mobile < 10) {
-        port = '/dev/ttyS3';
-        baudRate = 115200;
-      } else {
-        port = '/dev/ttyS1';
-        baudRate = 38400;
-      }
-      let serialCom = await SerialPortAPI.open(port, {
-        baudRate: baudRate,
-      });
-
-      dispatch({type: INIT, payload: serialCom});
-    } catch (error) {
-      setType('ERROR');
-      setMsg(error.toString());
     }
   }
 
@@ -175,13 +143,6 @@ export default function HomeScreen({navigation}) {
           />
         </View>
       </ImageBackground>
-
-      <MessageDialog
-        type={type}
-        msg={msg}
-        close={() => setMsg(null)}
-        onConfirm={() => navigation.navigate('Disconnected')}
-      />
     </View>
   );
 }

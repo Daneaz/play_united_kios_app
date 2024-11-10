@@ -5,6 +5,9 @@ export const START = 'START';
 export const RESET = 'RESET';
 export const TICK = 'TICK';
 export const INIT = 'INIT';
+export const CLOSE = 'CLOSE';
+export const MESSAGE_RECEIVED = 'MESSAGE_RECEIVED';
+export const MESSAGE_READ = 'MESSAGE_READ';
 export const EN = 'en';
 export const CN = 'cn';
 
@@ -18,3 +21,13 @@ export const REFUND = 'REFUND';
 
 export const RETRIEVE = 'RETRIEVE';
 export const PURCHASE = 'PURCHASE';
+
+// LeYaoYao Response status
+export const STATUS_ONLINE = 'ON_LINE';
+export const STATUS_OFFLINE = 'OFF_LINE';
+export const STATUS_FAIL = 'FAIL';
+export const STATUS_SUCCESS = 'SUCCESS';
+export const STATUS_DISPENSING = 'DISPENSING';
+export const STATUS_PROCESS_DISPENSING = 'PROCESS_DISPENSING';
+export const STATUS_NOT_ENOUGH_TOKEN = 'NOT_ENOUGH_TOKEN';
+export const STATUS_UNKNOWN = 'UNKNOWN';

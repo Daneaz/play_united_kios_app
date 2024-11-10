@@ -3,18 +3,26 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import TimerLayout from '../components/Layouts/TimerLayout';
 import {ImageBackground, StyleSheet, Text, View} from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import {fetchAPI} from '../services/Utility';
+import {fetchAPI, getData} from '../services/Utility';
 import MessageDialog from '../components/MessageDialog';
 import {GlobalContext} from '../states/GlobalState';
+import * as Constant from '../constants/Constant';
 import {
   CN,
   CREATED,
   DISPENSING,
+  MESSAGE_RECEIVED,
   RETRIEVE,
+  STATUS_ONLINE,
   SUCCESS,
 } from '../constants/Constant';
 import calculate from '../services/DimensionAdapter';
-import {dispenseToken} from '../services/SerialService';
+import {
+  ConstructDispenseCmd,
+  ConstructStatusCheckCmd,
+  HandleLeYaoYaoResponse,
+} from '../services/SerialService';
+import {TimeStampTo10Digits} from '../services/DateTimeUtils';
 
 export default function QRCodeScreen({route}) {
   const [status, setStatus] = useState(CREATED);
@@ -23,8 +31,9 @@ export default function QRCodeScreen({route}) {
   const [msg, setMsg] = useState(null);
   const [type, setType] = useState(null);
   const statusTimer = useRef();
+  const [instruction, setInstruction] = useState(null);
 
-  const [state] = useContext(GlobalContext);
+  const [state, dispatch] = useContext(GlobalContext);
 
   useEffect(() => {
     generateQRCode();
@@ -32,6 +41,35 @@ export default function QRCodeScreen({route}) {
       clearInterval(statusTimer.current);
     };
   }, []);
+
+  useEffect(() => {
+    // Assuming you want to log the latest message or use it in some logic
+    const isOnline = async () => {
+      if (state.result) {
+        console.log('Latest Received Message:', state.result);
+        if (state.result.status === STATUS_ONLINE) {
+          //clear the msg
+          dispatch({type: MESSAGE_RECEIVED, payload: ''});
+          let cmd = await ConstructDispenseCmd(
+            instruction.token,
+            instruction.uniqueCode,
+          );
+
+          await state.serialCom.send(cmd);
+        } else {
+          await HandleLeYaoYaoResponse(
+            state.result,
+            RETRIEVE,
+            transId,
+            setMsg,
+            setType,
+            state.language,
+          );
+        }
+      }
+    };
+    isOnline();
+  }, [state.result]); // Runs every time state.result changes
 
   useEffect(() => {
     return async () => {
@@ -65,7 +103,7 @@ export default function QRCodeScreen({route}) {
     }
   }
 
-  async function checkStatus(transId, startTime) {
+  async function checkStatus(id, startTime) {
     try {
       let expiredTime = startTime.getTime() + 5 * 60000;
       if (expiredTime < new Date().getTime()) {
@@ -73,17 +111,17 @@ export default function QRCodeScreen({route}) {
         await pushStatusToFail(transId);
       }
 
-      let token = await fetchAPI(
+      let responseStatus = await fetchAPI(
         'GET',
-        `tokenRetrieveMgt/checkStatusAndUpdate/${transId}`,
+        `tokenRetrieveMgt/checkStatusAndUpdate/${id}`,
       );
-      if (token) {
+      if (responseStatus) {
         setStatus(DISPENSING);
         clearInterval(statusTimer.current);
         setType('SUCCESS');
         setMsg('Payment success!!!');
         setTimeout(async () => {
-          await handleDispenseToken(transId, token);
+          await handleDispenseToken(id, route.params.token);
         }, 500);
       }
     } catch (err) {
@@ -94,15 +132,20 @@ export default function QRCodeScreen({route}) {
 
   async function handleDispenseToken(transId, token) {
     try {
-      await dispenseToken(
-        state.serialCom,
-        RETRIEVE,
-        transId,
-        token,
-        setMsg,
-        setType,
-        state.language,
-      );
+      let user = await getData(Constant.USER);
+      if (user.mobile <= 10) {
+        await ConstructDispenseCmd(token);
+      } else {
+        // LeYaoYao needs to check status before dispense, and the unique code needs to be equal
+        let timestamp = `00${TimeStampTo10Digits()}`;
+        let instructObj = {
+          uniqueCode: timestamp,
+          token: token,
+        };
+        setInstruction(instructObj);
+        let cmd = await ConstructStatusCheckCmd(timestamp);
+        await state.serialCom.send(cmd);
+      }
     } catch (error) {
       setType('ERROR');
       setMsg(JSON.stringify(error));
