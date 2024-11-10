@@ -29,6 +29,7 @@ export default function FOMOPayScreen({route, navigation}) {
   const [type, setType] = useState(null);
   const [state, dispatch] = useContext(GlobalContext);
   const [instruction, setInstruction] = useState(null);
+  const [transId, setTransId] = useState(null);
 
   useEffect(() => {
     if (state.time <= 0) {
@@ -89,8 +90,9 @@ export default function FOMOPayScreen({route, navigation}) {
           if (status) {
             setType(SUCCESS);
             setMsg('Payment success!!!');
+            setTransId(id);
             setTimeout(async () => {
-              await handleDispenseToken(id);
+              await handleDispenseToken();
             }, 500);
           } else {
             setType('ERROR');
