@@ -104,7 +104,7 @@ export default function FOMOPayScreen({route, navigation}) {
         }
       } else if (url.includes('PaymentCancel')) {
         setType('ERROR');
-        setMsg('Payment fail!!!');
+        setMsg('Payment fail or Duplicated transaction!!!');
       }
     } catch (err) {
       setType('ERROR');
