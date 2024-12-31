@@ -122,7 +122,11 @@ export default function MessageDialog(props) {
             style={common.icon}
             alt={'Image not found'}
           />
-          <Text style={common.msgText}>{props.msg}</Text>
+          <Text style={common.msgText}>
+            {typeof props.msg === 'object'
+              ? JSON.stringify(props.msg)
+              : props.msg}
+          </Text>
           <TextEnrichImageButton
             source={require('../assets/images/msg-dialog-btn-red.png')}
             imageBtnStyle={common.btn}
@@ -143,7 +147,11 @@ export default function MessageDialog(props) {
         <ImageButton
           source={require('../assets/images/msg-dialog-close-blue.png')}
           imageBtnStyle={success.close}
-          onPress={props.close}
+          onPress={() => {
+            props.close();
+            dispatch({type: RESET});
+            navigation.navigate('Home');
+          }}
         />
         <ImageBackground
           source={require('../assets/images/msg-dialog-green.png')}

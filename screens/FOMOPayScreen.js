@@ -130,8 +130,9 @@ export default function FOMOPayScreen({route, navigation}) {
         await state.serialCom.send(cmd);
       }
     } catch (error) {
+      console.log('FOMOPayScreen handleDispenseToken err: ', error);
       setType('ERROR');
-      setMsg(JSON.stringify(error));
+      setMsg(error);
     }
   }
 

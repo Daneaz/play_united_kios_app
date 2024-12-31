@@ -147,8 +147,9 @@ export default function QRCodeScreen({route}) {
         await state.serialCom.send(cmd);
       }
     } catch (error) {
+      console.log('QRCodeScreen handleDispenseToken  err: ', error);
       setType('ERROR');
-      setMsg(JSON.stringify(error));
+      setMsg(error);
     }
   }
 
