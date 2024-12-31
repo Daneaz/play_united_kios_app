@@ -44,6 +44,7 @@ export default function LoginScreen({navigation}) {
         navigation.push('Home');
       })
       .catch(error => {
+        console.log('LoginScreen onLogin  err: ', error);
         setTimeout(async () => {
           actions.setSubmitting(false);
           await removeData(Constant.USER);

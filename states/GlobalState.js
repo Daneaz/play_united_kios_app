@@ -94,6 +94,11 @@ export const GlobalContextProvider = props => {
         } else {
           let port, baudRate;
           let user = await getData(Constant.USER);
+          if (user === null) {
+            setType('ERROR');
+            setMsg('Please Login');
+            return;
+          }
           if (user.mobile === 0) {
             port = '/dev/ttyS2';
             baudRate = 115200;
@@ -123,6 +128,7 @@ export const GlobalContextProvider = props => {
           dispatch({type: INIT, payload: serialCom});
         }
       } catch (error) {
+        console.log('GlobalState GlobalContextProvider err: ', error);
         setType('ERROR');
         setMsg(error);
       }

@@ -122,11 +122,7 @@ export default function MessageDialog(props) {
             style={common.icon}
             alt={'Image not found'}
           />
-          <Text style={common.msgText}>
-            {typeof props.msg === 'object'
-              ? JSON.stringify(props.msg)
-              : props.msg}
-          </Text>
+          <Text style={common.msgText}>{formatMessage(props.msg)}</Text>
           <TextEnrichImageButton
             source={require('../assets/images/msg-dialog-btn-red.png')}
             imageBtnStyle={common.btn}
@@ -181,6 +177,17 @@ export default function MessageDialog(props) {
         </View>
       </ImageBackground>
     );
+  }
+
+  function formatMessage(msg) {
+    if (msg === null) {
+      return;
+    } else if (typeof msg === 'object' && msg.message) {
+      return msg.message;
+    } else if (typeof msg === 'string') {
+      return msg;
+    }
+    return 'Unknown message'; // 处理其他情况
   }
 
   function onConfirm() {
