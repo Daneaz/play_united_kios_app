@@ -6,6 +6,7 @@ import {
   EN,
   INIT,
   MESSAGE_RECEIVED,
+  READY,
   RESET,
   START,
   STATUS_DISPENSING,
@@ -31,6 +32,7 @@ const initialState = {
   language: EN,
   serialCom: null,
   result: '',
+  readyToReceived: false,
 };
 
 const reducer = (state, action) => {
@@ -38,7 +40,7 @@ const reducer = (state, action) => {
     case START:
       return {...state, isRunning: true};
     case RESET:
-      return {...state, isRunning: false, time: 300};
+      return {...state, isRunning: false, time: 300, readyToReceived: false};
     case TICK:
       return {...state, time: state.time - 1};
     case CN:
@@ -47,7 +49,12 @@ const reducer = (state, action) => {
       return {...state, language: EN};
     case INIT:
       return {...state, serialCom: action.payload};
+    case READY:
+      return {...state, readyToReceived: true};
     case MESSAGE_RECEIVED:
+      if (!state.readyToReceived) {
+        return {...state};
+      }
       return {...state, result: action.payload};
     case CLOSE:
       if (SERIAL === 'LOCAL') {
@@ -69,6 +76,7 @@ export const GlobalContextProvider = props => {
   useEffect(() => {
     const initSerialCom = async () => {
       try {
+        console.log('SERIAL Mode:', SERIAL);
         if (SERIAL === 'LOCAL') {
           const webSocket = new WebSocket('ws://10.0.2.2:8080'); // 在模拟器中访问本地主机
 

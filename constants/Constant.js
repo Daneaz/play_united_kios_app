@@ -7,7 +7,7 @@ export const TICK = 'TICK';
 export const INIT = 'INIT';
 export const CLOSE = 'CLOSE';
 export const MESSAGE_RECEIVED = 'MESSAGE_RECEIVED';
-export const MESSAGE_READ = 'MESSAGE_READ';
+export const READY = 'READY';
 export const EN = 'en';
 export const CN = 'cn';
 

@@ -39,6 +39,7 @@ async function processLeYaoYaoResponse(ws, message) {
       // 10 个币 0A00 = 成功, 2条过程, 成功结果
       // 20 个币 1400 = 币不足, 3条过程, 无结果
       // 20 个币 1400 = 币不足, 2条过程, 失败结果
+      // 50 个币 3200 = 连续不断发送消息
       // 100 个币 6400 = 失败, 故障结果
       // -->> AA0E01D10230383135353064000A00BBDD (出币命令)
       // <<-- AA0C02D1206400000064005000AFDD (出币过程, 多条)
@@ -84,6 +85,14 @@ async function processLeYaoYaoResponse(ws, message) {
           await delay(1000);
           response = constructFailedDispenseResult(uniqueCode);
           sendMsg(ws, response);
+          break;
+        case '32':
+          // send 1000 msg, each shorten the delay by 1ms
+          for (let i = 1000; i >= 1; i--) {
+            await delay(i);
+            response = constructDispenseProcess('03');
+            sendMsg(ws, response);
+          }
           break;
         case '64':
           await delay(1000);

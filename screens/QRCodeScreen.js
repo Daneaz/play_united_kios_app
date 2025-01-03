@@ -12,6 +12,7 @@ import {
   CREATED,
   DISPENSING,
   MESSAGE_RECEIVED,
+  READY,
   RETRIEVE,
   STATUS_ONLINE,
   SUCCESS,
@@ -120,6 +121,7 @@ export default function QRCodeScreen({route}) {
         clearInterval(statusTimer.current);
         setType('SUCCESS');
         setMsg('Payment success!!!');
+        dispatch({READY});
         setTimeout(async () => {
           await handleDispenseToken(id, route.params.token);
         }, 500);

@@ -7,7 +7,7 @@ import {
   CN,
   MESSAGE_RECEIVED,
   PURCHASE,
-  RESET,
+  READY,
   STATUS_ONLINE,
   SUCCESS,
 } from '../constants/Constant';
@@ -30,13 +30,6 @@ export default function FOMOPayScreen({route, navigation}) {
   const [state, dispatch] = useContext(GlobalContext);
   const [instruction, setInstruction] = useState(null);
   const [transId, setTransId] = useState(null);
-
-  useEffect(() => {
-    if (state.time <= 0) {
-      dispatch({type: RESET});
-      navigation.navigate('Home');
-    }
-  }, [state.time]);
 
   useEffect(() => {
     // Assuming you want to log the latest message or use it in some logic
@@ -91,6 +84,7 @@ export default function FOMOPayScreen({route, navigation}) {
             setType(SUCCESS);
             setMsg('Payment success!!!');
             setTransId(id);
+            dispatch({READY});
             setTimeout(async () => {
               await handleDispenseToken();
             }, 500);
