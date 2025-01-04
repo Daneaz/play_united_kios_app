@@ -121,7 +121,7 @@ export default function QRCodeScreen({route}) {
         clearInterval(statusTimer.current);
         setType('SUCCESS');
         setMsg('Payment success!!!');
-        dispatch({READY});
+        dispatch({type: READY});
         setTimeout(async () => {
           await handleDispenseToken(id, route.params.token);
         }, 500);

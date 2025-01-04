@@ -49,14 +49,16 @@ const reducer = (state, action) => {
     case INIT:
       return {...state, serialCom: action.payload};
     case READY:
+      console.log('READY: ', state);
       return {...state, readyToReceived: true};
     case MESSAGE_RECEIVED:
+      console.log('MESSAGE_RECEIVED: ', state);
       if (!state.readyToReceived) {
-        return {...state};
+        return {...state, result: ''};
       }
       return {...state, result: action.payload};
     case CLOSE:
-      if (process.env.API_URL === 'LOCAL') {
+      if (process.env.SERIAL === 'LOCAL') {
         state.serialCom = null;
       } else {
         state.serialCom.close();

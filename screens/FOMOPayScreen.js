@@ -84,7 +84,7 @@ export default function FOMOPayScreen({route, navigation}) {
             setType(SUCCESS);
             setMsg('Payment success!!!');
             setTransId(id);
-            dispatch({READY});
+            dispatch({type: READY});
             setTimeout(async () => {
               await handleDispenseToken();
             }, 500);
