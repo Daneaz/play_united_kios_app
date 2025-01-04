@@ -1,5 +1,3 @@
-import {ENV} from '@env';
-
 export const S3UatUrl =
   'https://playuniteduat.s3.ap-southeast-1.amazonaws.com/';
 export const S3ProdUrl =
@@ -25,9 +23,10 @@ const ENVURL = {
 };
 
 function getEnvironment() {
-  if (ENV === 'PROD') {
+  console.log('ENV: ', process.env.ENV);
+  if (process.env.ENV === 'PROD') {
     return ENVURL.prod; // prod env settings
-  } else if (ENV === 'UAT') {
+  } else if (process.env.ENV === 'UAT') {
     return ENVURL.uat; // stage env settings
   } else {
     return ENVURL.dev; // dev env settings

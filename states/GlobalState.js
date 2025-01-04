@@ -21,7 +21,6 @@ import {
 } from '../constants/Constant';
 import {getData} from '../services/Utility';
 import SerialPortAPI from 'react-native-serial-port-api';
-import {SERIAL} from '@env';
 import MessageDialog from '../components/MessageDialog';
 
 export const GlobalContext = createContext();
@@ -57,7 +56,7 @@ const reducer = (state, action) => {
       }
       return {...state, result: action.payload};
     case CLOSE:
-      if (SERIAL === 'LOCAL') {
+      if (process.env.API_URL === 'LOCAL') {
         state.serialCom = null;
       } else {
         state.serialCom.close();
@@ -76,8 +75,8 @@ export const GlobalContextProvider = props => {
   useEffect(() => {
     const initSerialCom = async () => {
       try {
-        console.log('SERIAL Mode:', SERIAL);
-        if (SERIAL === 'LOCAL') {
+        console.log('SERIAL:', process.env.SERIAL);
+        if (process.env.SERIAL === 'LOCAL') {
           const webSocket = new WebSocket('ws://10.0.2.2:8080'); // 在模拟器中访问本地主机
 
           webSocket.onopen = () => {

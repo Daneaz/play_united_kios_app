@@ -6,7 +6,6 @@ import {fetchAPI, getData, removeData, storeData} from '../services/Utility';
 import {GlobalStyles} from '../constants/GlobalStyles';
 import {loginSchema} from '../constants/Validations';
 import ButtonSpinner from '../components/Button/ButtonSpinner';
-import {ENV} from '@env';
 import * as Constant from '../constants/Constant';
 import {useIsFocused} from '@react-navigation/native';
 import MessageDialog from '../components/MessageDialog';
@@ -15,6 +14,8 @@ export default function LoginScreen({navigation}) {
   const [msg, setMsg] = useState(null);
   const isFocused = useIsFocused();
   useEffect(() => {
+    console.log('ENV: ', process.env.ENV);
+    console.log('SERIAL: ', process.env.SERIAL);
     async function getUser() {
       let user = await getData(Constant.USER);
       if (user !== null && user.role.name === Constant.MACHINE) {
@@ -116,7 +117,7 @@ export default function LoginScreen({navigation}) {
             </Layout>
             <Layout style={GlobalStyles.rowCenterContent}>
               <Text style={GlobalStyles.smallText}>
-                {`${ENV} Build Version: 20250104V1`}
+                {`${process.env.ENV} Build Version: 20250104V2${process.env.SERIAL}`}
               </Text>
             </Layout>
           </Layout>
