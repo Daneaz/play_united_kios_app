@@ -4,7 +4,7 @@ import TimerLayout from '../components/Layouts/TimerLayout';
 import ImageButton from '../components/Button/ImageButton';
 import {StyleSheet, View} from 'react-native';
 import {GlobalContext} from '../states/GlobalState';
-import {CN} from '../constants/Constant';
+import {CN, MESSAGE_RECEIVED} from '../constants/Constant';
 import InputModel from '../components/Input/InputModel';
 import calculate from '../services/DimensionAdapter';
 
@@ -12,15 +12,23 @@ export default function RetrieveTokenScreen({navigation, route}) {
   const [tokenLang, setTokenLang] = useState();
   const [open, setOpen] = useState();
 
-  const [state] = useContext(GlobalContext);
+  const [state, dispatch] = useContext(GlobalContext);
 
   useEffect(() => {
+    //clear the msg, before entering the next screen
+    dispatch({type: MESSAGE_RECEIVED, payload: ''});
     if (state.language === CN) {
       setTokenLang('币');
     } else {
       setTokenLang('Tokens');
     }
   }, [state.language]);
+
+  async function handleRetrieved(token) {
+    navigation.navigate('QRCode', {
+      token: token,
+    });
+  }
 
   return (
     <TimerLayout
@@ -38,33 +46,21 @@ export default function RetrieveTokenScreen({navigation, route}) {
             text={`10 ${tokenLang}`}
             imageBtnStyle={styles.image}
             imageBtnTextStyle={styles.tokenText}
-            onPress={() =>
-              navigation.navigate('QRCode', {
-                token: '10',
-              })
-            }
+            onPress={() => handleRetrieved('10')}
           />
           <ImageButton
             source={require('../assets/images/token-20.png')}
             text={`20 ${tokenLang}`}
             imageBtnStyle={styles.image}
             imageBtnTextStyle={styles.tokenText}
-            onPress={() =>
-              navigation.navigate('QRCode', {
-                token: '20',
-              })
-            }
+            onPress={() => handleRetrieved('20')}
           />
           <ImageButton
             source={require('../assets/images/token-30.png')}
             text={`30 ${tokenLang}`}
             imageBtnStyle={styles.image}
             imageBtnTextStyle={styles.tokenText}
-            onPress={() =>
-              navigation.navigate('QRCode', {
-                token: '30',
-              })
-            }
+            onPress={() => handleRetrieved('30')}
           />
         </View>
         <View style={styles.row}>
@@ -73,22 +69,14 @@ export default function RetrieveTokenScreen({navigation, route}) {
             text={`50 ${tokenLang}`}
             imageBtnStyle={styles.image}
             imageBtnTextStyle={styles.tokenText}
-            onPress={() =>
-              navigation.navigate('QRCode', {
-                token: '50',
-              })
-            }
+            onPress={() => handleRetrieved('50')}
           />
           <ImageButton
             source={require('../assets/images/token-100.png')}
             text={`100 ${tokenLang}`}
             imageBtnStyle={styles.image}
             imageBtnTextStyle={styles.tokenText}
-            onPress={() =>
-              navigation.navigate('QRCode', {
-                token: '100',
-              })
-            }
+            onPress={() => handleRetrieved('100')}
           />
           <ImageButton
             source={require('../assets/images/token-more.png')}

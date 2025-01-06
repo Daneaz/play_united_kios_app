@@ -148,6 +148,7 @@ export async function HandleResponse(
       if (transId) {
         await pushStatusToFail(transType, transId, setMsg, setType);
       }
+      setType('ERROR');
       setMsg(
         lang === CN
           ? '出币失败。。。请联系工作人员'
@@ -175,6 +176,7 @@ export async function HandleResponse(
       );
       break;
     case STATUS_NOT_ENOUGH_TOKEN:
+      setType('ERROR');
       setMsg(
         lang === CN
           ? `库存不足，请联系工作人员补币。 已出${result.token}个币`
@@ -191,6 +193,7 @@ export async function HandleResponse(
       }
       break;
     case STATUS_UNKNOWN:
+      setType('ERROR');
       setMsg(
         lang === CN
           ? '库存不足/或故障，请联系工作人员'
@@ -198,6 +201,7 @@ export async function HandleResponse(
       );
       break;
     default:
+      setType('ERROR');
       setMsg(
         lang === CN
           ? '未知故障，请联系工作人员'

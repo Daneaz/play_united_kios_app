@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import {fetchAPI} from '../services/Utility';
 import {GlobalContext} from '../states/GlobalState';
-import {CN} from '../constants/Constant';
+import {CN, MESSAGE_RECEIVED} from '../constants/Constant';
 import calculate from '../services/DimensionAdapter';
 import Colors from '../constants/Colors';
 import MessageDialog from './MessageDialog';
@@ -21,9 +21,11 @@ export default function PurchaseBanner(props) {
   const [header, setHeader] = useState(null);
   const [btnText, setBtnText] = useState(null);
 
-  const [state] = useContext(GlobalContext);
+  const [state, dispatch] = useContext(GlobalContext);
 
   useEffect(() => {
+    //clear the msg, when entering the screen, preventing being stuck
+    dispatch({type: MESSAGE_RECEIVED, payload: ''});
     if (state.language === CN) {
       setTokenLang('币');
     } else {
@@ -48,10 +50,12 @@ export default function PurchaseBanner(props) {
         activeOpacity={0.5}
         onPress={() => {
           setType('INFO');
-          setHeader('Purchasing');
-          setBtnText('Confirm?');
+          setHeader(state.language === CN ? '购买' : 'Purchasing');
+          setBtnText(state.language === CN ? '确认?' : 'Confirm?');
           setMsg(
-            `Token: ${promotion.tokens} \n Amount: $${promotion.sellingPrice}`,
+            state.language === CN
+              ? `币数量: ${promotion.tokens} \n 金额: $${promotion.sellingPrice}`
+              : `Token: ${promotion.tokens} \n Amount: $${promotion.sellingPrice}`,
           );
         }}>
         <ImageBackground

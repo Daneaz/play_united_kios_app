@@ -11,7 +11,6 @@ import {
   CN,
   CREATED,
   DISPENSING,
-  MESSAGE_RECEIVED,
   READY,
   RETRIEVE,
   STATUS_ONLINE,
@@ -49,8 +48,6 @@ export default function QRCodeScreen({route}) {
       if (state.result) {
         console.log('Latest Received Message:', state.result);
         if (state.result.status === STATUS_ONLINE) {
-          //clear the msg
-          dispatch({type: MESSAGE_RECEIVED, payload: ''});
           let cmd = await ConstructDispenseCmd(
             instruction.token,
             instruction.uniqueCode,

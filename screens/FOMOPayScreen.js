@@ -5,7 +5,6 @@ import {GlobalContext} from '../states/GlobalState';
 import * as Constant from '../constants/Constant';
 import {
   CN,
-  MESSAGE_RECEIVED,
   PURCHASE,
   READY,
   STATUS_ONLINE,
@@ -44,8 +43,6 @@ export default function FOMOPayScreen({route, navigation}) {
       if (state.result) {
         console.log('Latest Received Message:', state.result);
         if (state.result.status === STATUS_ONLINE) {
-          //clear the msg
-          dispatch({type: MESSAGE_RECEIVED, payload: ''});
           let cmd = await ConstructDispenseCmd(
             instruction.token,
             instruction.uniqueCode,

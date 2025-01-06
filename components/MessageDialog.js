@@ -2,7 +2,7 @@ import React, {useContext} from 'react';
 import {Image, ImageBackground, StyleSheet, Text, View} from 'react-native';
 import ImageButton from './Button/ImageButton';
 import {useNavigation} from '@react-navigation/native';
-import {RESET} from '../constants/Constant';
+import {MESSAGE_RECEIVED, RESET} from '../constants/Constant';
 import {GlobalContext} from '../states/GlobalState';
 import calculate from '../services/DimensionAdapter';
 import TextEnricher from './Label/TextEnricher';
@@ -191,6 +191,8 @@ export default function MessageDialog(props) {
   }
 
   function onConfirm() {
+    //clear the msg, before entering the next screen
+    dispatch({type: MESSAGE_RECEIVED, payload: ''});
     if (props.onConfirm) {
       props.close();
       props.onConfirm();
