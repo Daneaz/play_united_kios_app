@@ -31,6 +31,13 @@ export default function FOMOPayScreen({route, navigation}) {
   const [instruction, setInstruction] = useState(null);
   const [transId, setTransId] = useState(null);
 
+  // const [url, setUrl] = useState(route.params.url);
+  // useEffect(() => {
+  //   setTimeout(async () => {
+  //     setUrl('playunited://something_PaymentSuccess');
+  //   }, 5000);
+  // }, []);
+
   useEffect(() => {
     // Assuming you want to log the latest message or use it in some logic
     const isOnline = async () => {

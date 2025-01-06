@@ -36,7 +36,7 @@ async function processLeYaoYaoResponse(ws, message) {
       sendMsg(ws, response);
       break;
     case 34:
-      // 10 个币 0A00 = 成功, 2条过程, 成功结果
+      // 5/10 个币 0A00 = 成功, 2条过程, 成功结果
       // 20 个币 1400 = 币不足, 3条过程, 无结果
       // 20 个币 1400 = 币不足, 2条过程, 失败结果
       // 50 个币 3200 = 连续不断发送消息
@@ -50,6 +50,17 @@ async function processLeYaoYaoResponse(ws, message) {
       console.log('Received Token: ', token);
       console.log('Received uniqueCode: ', uniqueCode);
       switch (token) {
+        case '05':
+          await delay(1000);
+          response = constructDispenseProcess('06');
+          sendMsg(ws, response);
+          await delay(1000);
+          response = constructDispenseProcess('03');
+          sendMsg(ws, response);
+          await delay(1000);
+          response = constructSuccessDispenseResult(uniqueCode);
+          sendMsg(ws, response);
+          break;
         case '0A':
           await delay(1000);
           response = constructDispenseProcess('06');

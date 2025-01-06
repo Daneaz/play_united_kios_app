@@ -39,7 +39,13 @@ const reducer = (state, action) => {
     case START:
       return {...state, isRunning: true};
     case RESET:
-      return {...state, isRunning: false, time: 300, readyToReceived: false};
+      return {
+        ...state,
+        isRunning: false,
+        time: 300,
+        readyToReceived: false,
+        result: '',
+      };
     case TICK:
       return {...state, time: state.time - 1};
     case CN:
