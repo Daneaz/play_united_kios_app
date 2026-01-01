@@ -3,7 +3,7 @@ import getEnvironment from './Environment';
 import * as Constant from '../constants/Constant';
 import {USER} from '../constants/Constant';
 
-const APIURL = getEnvironment.apiUrl;
+const APIURL = getEnvironment().apiUrl;
 const APIVERSION = 'v1/';
 
 export const removeToken = async () => {
@@ -61,13 +61,14 @@ export const clearAllData = async () => {
 
 //RESTful API fetch
 const getApiUrl = path => {
+  console.log('APIURL: ', APIURL);
   return `${APIURL}/api${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
 const getApiConf = (method, jsonObj, token) => {
   let conf = {method: method, headers: {}};
   conf.headers = {'Content-Type': 'application/json'};
-
+    
   if (token) {
     conf.headers.Authorization = 'Bearer ' + token;
   }

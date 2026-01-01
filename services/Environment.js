@@ -1,13 +1,22 @@
-export const S3UatUrl =
-  'https://playuniteduat.s3.ap-southeast-1.amazonaws.com/';
-export const S3ProdUrl =
-  'https://playunitedprod.s3.ap-southeast-1.amazonaws.com/';
+import { Platform } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
+
+export const S3UatUrl = 'https://playuniteduat.s3.ap-southeast-1.amazonaws.com/';
+export const S3ProdUrl = 'https://playunitedprod.s3.ap-southeast-1.amazonaws.com/';
 const uatUrl = 'https://uat.mobile.playunitedsg.com';
 const prodUrl = 'https://mobile.playunitedsg.com';
+
+const PHYSICAL_DEVICE_IP = '192.168.1.199';
+
+function resolveDevApiUrl() {
+  const isEmulator = DeviceInfo.isEmulatorSync();
+  return isEmulator ? 'http://localhost:5000' : `http://${PHYSICAL_DEVICE_IP}:5000`;
+}
+
 const ENVURL = {
   dev: {
     envName: 'DEV',
-    apiUrl: 'http://192.168.1.199:5000',
+    apiUrl: resolveDevApiUrl(),
     s3Url: S3UatUrl,
   },
   uat: {
@@ -23,14 +32,13 @@ const ENVURL = {
 };
 
 function getEnvironment() {
-  console.log('ENV: ', process.env.ENV);
   if (process.env.ENV === 'PROD') {
-    return ENVURL.prod; // prod env settings
+    return ENVURL.prod;
   } else if (process.env.ENV === 'UAT') {
-    return ENVURL.uat; // stage env settings
+    return ENVURL.uat;
   } else {
-    return ENVURL.dev; // dev env settings
+    return ENVURL.dev;
   }
 }
 
-export default getEnvironment();
+export default getEnvironment;

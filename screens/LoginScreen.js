@@ -117,7 +117,7 @@ export default function LoginScreen({navigation}) {
             </Layout>
             <Layout style={GlobalStyles.rowCenterContent}>
               <Text style={GlobalStyles.smallText}>
-                {`${process.env.ENV} Build Version: 20250104V2${process.env.SERIAL}`}
+                {`${process.env.ENV} Build Version: 20250106V3${process.env.SERIAL}`}
               </Text>
             </Layout>
           </Layout>
