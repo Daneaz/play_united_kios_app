@@ -1,4 +1,4 @@
-import React, {createContext, useEffect, useReducer, useState} from 'react';
+import React, {createContext, useEffect, useReducer, useRef, useState} from 'react';
 import * as Constant from '../constants/Constant';
 import {
   CLOSE,
@@ -79,13 +79,16 @@ export const GlobalContextProvider = props => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [msg, setMsg] = useState(null);
   const [type, setType] = useState(null);
-  const [attempts, setAttempts] = useState(0);
+  const retryCountRef = useRef(0);
+  const retryTimerRef = useRef(null);
+  const initInProgressRef = useRef(false);
 
   const initSerialCom = async () => {
     try {
-      if (state.serialCom) {
+      if (state.serialCom || initInProgressRef.current) {
         return;
       }
+      initInProgressRef.current = true;
       console.log('SERIAL:', process.env.SERIAL);
       if (process.env.SERIAL === 'LOCAL') {
         const webSocket = new WebSocket('ws://10.0.2.2:8080');
@@ -93,6 +96,12 @@ export const GlobalContextProvider = props => {
         webSocket.onopen = () => {
           console.log('WebSocket connected');
           dispatch({type: INIT, payload: webSocket});
+          initInProgressRef.current = false;
+          if (retryTimerRef.current) {
+            clearTimeout(retryTimerRef.current);
+            retryTimerRef.current = null;
+          }
+          retryCountRef.current = 0;
         };
 
         webSocket.onmessage = event => {
@@ -115,6 +124,7 @@ export const GlobalContextProvider = props => {
         if (user === null) {
           setType('ERROR');
           setMsg('Please Login');
+          initInProgressRef.current = false;
           return;
         }
         if (user.mobile === 0) {
@@ -144,14 +154,25 @@ export const GlobalContextProvider = props => {
         });
 
         dispatch({type: INIT, payload: serialCom});
+        initInProgressRef.current = false;
+        if (retryTimerRef.current) {
+          clearTimeout(retryTimerRef.current);
+          retryTimerRef.current = null;
+        }
+        retryCountRef.current = 0;
       }
     } catch (error) {
       console.log('GlobalState GlobalContextProvider err: ', error);
       setType('ERROR');
       setMsg(error);
-      if (attempts < 3) {
-        setTimeout(() => {
-          setAttempts(prev => prev + 1);
+      initInProgressRef.current = false;
+      if (retryCountRef.current < 3) {
+        retryCountRef.current += 1;
+        if (retryTimerRef.current) {
+          clearTimeout(retryTimerRef.current);
+          retryTimerRef.current = null;
+        }
+        retryTimerRef.current = setTimeout(() => {
           initSerialCom();
         }, 2000);
       }

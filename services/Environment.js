@@ -10,7 +10,7 @@ const PHYSICAL_DEVICE_IP = '192.168.1.199';
 
 function resolveDevApiUrl() {
   const isEmulator = DeviceInfo.isEmulatorSync();
-  return isEmulator ? 'http://localhost:5000' : `http://${PHYSICAL_DEVICE_IP}:5000`;
+  return isEmulator ? 'http://10.0.2.2:5000' : `http://${PHYSICAL_DEVICE_IP}:5000`;
 }
 
 const ENVURL = {
