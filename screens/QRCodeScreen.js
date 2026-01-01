@@ -30,13 +30,17 @@ export default function QRCodeScreen({route}) {
   const [transId, setTransId] = useState(null);
   const [msg, setMsg] = useState(null);
   const [type, setType] = useState(null);
-  const statusTimer = useRef();
+  const statusTimer = useRef(null);
+  const initialized = useRef(false);
   const [instruction, setInstruction] = useState(null);
 
   const [state, dispatch] = useContext(GlobalContext);
 
   useEffect(() => {
-    generateQRCode();
+    if (!initialized.current) {
+      initialized.current = true;
+      generateQRCode();
+    }
     return async () => {
       clearInterval(statusTimer.current);
     };
@@ -92,6 +96,9 @@ export default function QRCodeScreen({route}) {
       setQrCode(JSON.stringify(code));
       setTransId(result._id);
       let startTime = new Date();
+      if (statusTimer.current) {
+        clearInterval(statusTimer.current);
+      }
       statusTimer.current = setInterval(() => {
         checkStatus(result._id, startTime);
       }, 5000);
@@ -106,7 +113,7 @@ export default function QRCodeScreen({route}) {
       let expiredTime = startTime.getTime() + 5 * 60000;
       if (expiredTime < new Date().getTime()) {
         clearInterval(statusTimer.current);
-        await pushStatusToFail(transId);
+        await pushStatusToFail(id);
       }
 
       let responseStatus = await fetchAPI(

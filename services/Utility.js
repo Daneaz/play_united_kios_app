@@ -61,7 +61,6 @@ export const clearAllData = async () => {
 
 //RESTful API fetch
 const getApiUrl = path => {
-  console.log('APIURL: ', APIURL);
   return `${APIURL}/api${path.startsWith('/') ? '' : '/'}${path}`;
 };
 

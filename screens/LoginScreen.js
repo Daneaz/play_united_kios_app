@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Input, Layout, Text} from '@ui-kitten/components';
 import {Formik} from 'formik';
 import InputLayout from '../components/Layouts/InputLayout';
@@ -9,10 +9,12 @@ import ButtonSpinner from '../components/Button/ButtonSpinner';
 import * as Constant from '../constants/Constant';
 import {useIsFocused} from '@react-navigation/native';
 import MessageDialog from '../components/MessageDialog';
+import {GlobalContext} from '../states/GlobalState';
 
 export default function LoginScreen({navigation}) {
   const [msg, setMsg] = useState(null);
   const isFocused = useIsFocused();
+  const [, , initSerialCom] = useContext(GlobalContext);
   useEffect(() => {
     console.log('ENV: ', process.env.ENV);
     console.log('SERIAL: ', process.env.SERIAL);
@@ -41,6 +43,7 @@ export default function LoginScreen({navigation}) {
       .then(async respObj => {
         await storeData(Constant.TOKEN, respObj.token);
         await storeData(Constant.USER, JSON.stringify(respObj.user));
+        await initSerialCom();
         actions.setSubmitting(false);
         navigation.push('Home');
       })

@@ -79,75 +79,86 @@ export const GlobalContextProvider = props => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [msg, setMsg] = useState(null);
   const [type, setType] = useState(null);
+  const [attempts, setAttempts] = useState(0);
+
+  const initSerialCom = async () => {
+    try {
+      if (state.serialCom) {
+        return;
+      }
+      console.log('SERIAL:', process.env.SERIAL);
+      if (process.env.SERIAL === 'LOCAL') {
+        const webSocket = new WebSocket('ws://10.0.2.2:8080');
+
+        webSocket.onopen = () => {
+          console.log('WebSocket connected');
+          dispatch({type: INIT, payload: webSocket});
+        };
+
+        webSocket.onmessage = event => {
+          console.log('WebSocket Received Original: ', event.data);
+          console.log(
+            'WebSocket Received Formatted: ',
+            formatHexMsg(event.data),
+          );
+          let result = handleLeYaoYaoResponse(event.data);
+          dispatch({type: MESSAGE_RECEIVED, payload: result});
+        };
+
+        webSocket.onclose = () => {
+          console.log('WebSocket closed');
+          dispatch({type: CLOSE});
+        };
+      } else {
+        let port, baudRate;
+        let user = await getData(Constant.USER);
+        if (user === null) {
+          setType('ERROR');
+          setMsg('Please Login');
+          return;
+        }
+        if (user.mobile === 0) {
+          port = '/dev/ttyS2';
+          baudRate = 115200;
+        } else if (user.mobile <= 10) {
+          port = '/dev/ttyS3';
+          baudRate = 115200;
+        } else {
+          port = '/dev/ttyS1';
+          baudRate = 38400;
+        }
+        let serialCom = await SerialPortAPI.open(port, {
+          baudRate: baudRate,
+        });
+        serialCom.onReceived(async buff => {
+          let hex = buff.toString('hex').toUpperCase();
+          console.log('SerialCom Received Original: ', hex);
+          console.log('SerialCom Received Formatted: ', formatHexMsg(hex));
+          let result;
+          if (user.mobile <= 10) {
+            result = handleAAResponse(hex);
+          } else {
+            result = handleLeYaoYaoResponse(hex);
+          }
+          dispatch({type: MESSAGE_RECEIVED, payload: result});
+        });
+
+        dispatch({type: INIT, payload: serialCom});
+      }
+    } catch (error) {
+      console.log('GlobalState GlobalContextProvider err: ', error);
+      setType('ERROR');
+      setMsg(error);
+      if (attempts < 3) {
+        setTimeout(() => {
+          setAttempts(prev => prev + 1);
+          initSerialCom();
+        }, 2000);
+      }
+    }
+  };
 
   useEffect(() => {
-    const initSerialCom = async () => {
-      try {
-        console.log('SERIAL:', process.env.SERIAL);
-        if (process.env.SERIAL === 'LOCAL') {
-          const webSocket = new WebSocket('ws://10.0.2.2:8080'); // 在模拟器中访问本地主机
-
-          webSocket.onopen = () => {
-            console.log('WebSocket connected');
-            dispatch({type: INIT, payload: webSocket});
-          };
-
-          webSocket.onmessage = event => {
-            console.log('WebSocket Received Original: ', event.data);
-            console.log(
-              'WebSocket Received Formatted: ',
-              formatHexMsg(event.data),
-            );
-            let result = handleLeYaoYaoResponse(event.data);
-            dispatch({type: MESSAGE_RECEIVED, payload: result});
-          };
-
-          webSocket.onclose = () => {
-            console.log('WebSocket closed');
-            dispatch({type: CLOSE});
-          };
-        } else {
-          let port, baudRate;
-          let user = await getData(Constant.USER);
-          if (user === null) {
-            setType('ERROR');
-            setMsg('Please Login');
-            return;
-          }
-          if (user.mobile === 0) {
-            port = '/dev/ttyS2';
-            baudRate = 115200;
-          } else if (user.mobile <= 10) {
-            port = '/dev/ttyS3';
-            baudRate = 115200;
-          } else {
-            port = '/dev/ttyS1';
-            baudRate = 38400;
-          }
-          let serialCom = await SerialPortAPI.open(port, {
-            baudRate: baudRate,
-          });
-          serialCom.onReceived(async buff => {
-            let hex = buff.toString('hex').toUpperCase();
-            console.log('SerialCom Received Original: ', hex);
-            console.log('SerialCom Received Formatted: ', formatHexMsg(hex));
-            let result;
-            if (user.mobile <= 10) {
-              result = handleAAResponse(hex);
-            } else {
-              result = handleLeYaoYaoResponse(hex);
-            }
-            dispatch({type: MESSAGE_RECEIVED, payload: result});
-          });
-
-          dispatch({type: INIT, payload: serialCom});
-        }
-      } catch (error) {
-        console.log('GlobalState GlobalContextProvider err: ', error);
-        setType('ERROR');
-        setMsg(error);
-      }
-    };
     initSerialCom();
     return () => {
       dispatch({type: CLOSE});
@@ -155,7 +166,7 @@ export const GlobalContextProvider = props => {
   }, [dispatch]);
 
   return (
-    <GlobalContext.Provider value={[state, dispatch]}>
+    <GlobalContext.Provider value={[state, dispatch, initSerialCom]}>
       {props.children}
       <MessageDialog type={type} msg={msg} close={() => setMsg(null)} />
     </GlobalContext.Provider>
